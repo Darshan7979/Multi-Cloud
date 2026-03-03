@@ -1,0 +1,384 @@
+/* ============================================
+   STYLISH ENHANCEMENTS & PREMIUM AESTHETICS
+   ============================================ */
+
+/* Keyframe Animations */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Sidebar Gradient Enhancement */
+.sidebar::before {
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #4facfe) !important;
+  background-size: 300% 100%;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* Gradient Text for Brand */
+.brand h1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  filter: drop-shadow(0 1px 4px rgba(102, 126, 234, 0.2));
+}
+
+.brand p {
+  color: transparent !important;
+  background: linear-gradient(90deg, #667eea, #764ba2) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* Enhanced Side Card */
+.side-card {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%) !important;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.side-card h3 {
+  color: transparent !important;
+  background: linear-gradient(90deg, #667eea, #764ba2) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* Enhanced Score Bar */
+.score-bar span {
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7) !important;
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Glassmorphism Effects */
+.stat-card,
+.panel,
+.auth-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.12) !important;
+}
+
+/* Gradient Accents */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::after {
+  opacity: 1;
+}
+
+/* Floating Decorative Elements */
+.main::before {
+  content: '';
+  position: fixed;
+  top: 10%;
+  right: 5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.15), transparent);
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: float 15s ease-in-out infinite;
+}
+
+.main::after {
+  content: '';
+  position: fixed;
+  bottom: 10%;
+  left: 5%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(240, 147, 251, 0.12), transparent);
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: float 20s ease-in-out infinite reverse;
+}
+
+/* Enhanced Stat Icons with Gradients */
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-icon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: rotate(45deg);
+}
+
+.stat-icon svg,
+.stat-icon * {
+  color: white !important;
+  fill: white !important;
+  stroke: white !important;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+/* Different gradient colors for each stat */
+.stat-card:nth-child(1) .stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card:nth-child(2) .stat-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card:nth-child(3) .stat-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card:nth-child(4) .stat-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* Premium Button Styles */
+button.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+button.primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+button.primary:hover::before {
+  left: 100%;
+}
+
+/* Stylish File Cards */
+.file-card {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(102, 126, 234, 0.15) !important;
+  transition: all 0.3s ease;
+}
+
+.file-card:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(102, 126, 234, 0.3) !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Glowing Inputs on Focus */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 0 20px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Animated Background Pattern */
+.auth-view {
+  position: relative;
+}
+
+.auth-view::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.1) 0%, transparent 60%);
+  animation: gradientFlow 15s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes gradientFlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Premium Auth Card */
+.auth-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.2), 
+              0 0 0 1px rgba(255, 255, 255, 0.4) !important;
+  border: none !important;
+}
+
+/* Stylish Tabs */
+.tab.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15)) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+  position: relative;
+}
+
+.tab.active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+/* Enhanced Navigation Buttons */
+.nav-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-btn.active::before,
+.nav-btn:hover::before {
+  transform: scaleY(1);
+}
+
+/* Stylish Panel Headers */
+.panel h3 {
+  position: relative;
+  padding-bottom: var(--space-3);
+}
+
+.panel h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 2px;
+}
+
+/* Progress Bar Enhancement */
+.progress-bar,
+.upload-progress {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  background-size: 200% 100%;
+  animation: gradientShift 2s ease infinite;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Stylish Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #764ba2, #f093fb);
+  background-clip: padding-box;
+}
+
+/* Feature Items with Icons */
+.feature-item svg {
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+}
+
+/* Sparkle Effect for Premium Elements */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.brand-mark::after {
+  content: '✨';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 12px;
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+/* Mesh Gradient Background */
+.dashboard-view {
+  position: relative;
+}
+
+.dashboard-view::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: radial-gradient(ellipse at top right, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}

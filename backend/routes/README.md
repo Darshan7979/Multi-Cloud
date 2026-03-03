@@ -1,0 +1,1 @@
+This folder contains API route definitions.

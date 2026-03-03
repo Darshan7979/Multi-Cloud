@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudFusion - Multi-Cloud Storage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="stylish-additions.css" />
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+  <!-- Decorative background elements for Glassmorphism -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
+        </div>
+        <div>
+          <h1>CloudFusion</h1>
+          <p>Multi-Cloud Storage</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-view="upload">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Upload Files</span>
+        </button>
+        <button class="nav-btn" data-view="files">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          <span>My Files</span>
+        </button>
+        <button class="nav-btn" data-view="analytics">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          <span>Analytics</span>
+        </button>
+        <button class="nav-btn" data-view="security">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Security</span>
+        </button>
+        <button class="nav-btn" data-view="services">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="19" cy="12" r="1"></circle>
+            <circle cx="5" cy="12" r="1"></circle>
+          </svg>
+          <span>Cloud Services</span>
+        </button>
+        <button class="nav-btn" data-view="settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24">
+            </path>
+          </svg>
+          <span>Settings</span>
+        </button>
+      </nav>
+      <div class="side-card">
+        <h3>Security Score</h3>
+        <p class="muted" id="security-score">--</p>
+        <div class="score-bar">
+          <span id="security-bar"></span>
+        </div>
+      </div>
+      <button id="sidebar-logout-btn" class="nav-btn logout-btn" style="margin-top: auto;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Logout</span>
+      </button>
+    </aside>
+
+    <main class="main">
+      <section id="auth-view" class="auth-view">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="auth-logo">
+              <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
+            </div>
+            <h2>Welcome to CloudFusion</h2>
+            <p class="auth-subtitle">Unified cloud storage, infinite possibilities</p>
+          </div>
+
+          <div class="auth-tabs">
+            <button class="tab active" data-tab="login">Login</button>
+            <button class="tab" data-tab="register">Register</button>
+          </div>
+
+          <form id="login-form" class="auth-form">
+            <label>Email
+              <input type="email" name="email" placeholder="you@email.com" required />
+            </label>
+            <label>Password
+              <div class="password-input">
+                <input type="password" name="password" id="login-password" placeholder="Enter your password" required />
+                <button type="button" class="password-toggle" data-target="login-password">
+                  <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </label>
+            <div class="form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" name="remember" />
+                <span>Remember me</span>
+              </label>
+              <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+            <button type="submit" class="primary">Sign In</button>
+            <p class="form-message" id="login-message"></p>
+          </form>
+
+          <form id="register-form" class="auth-form hidden">
+            <label>Name
+              <input type="text" name="name" placeholder="Your full name" required />
+            </label>
+            <label>Email
+              <input type="email" name="email" placeholder="you@email.com" required />
+            </label>
+            <label>Password
+              <div class="password-input">
+                <input type="password" name="password" id="register-password" placeholder="Create a strong password"
+                  required />
+                <button type="button" class="password-toggle" data-target="register-password">
+                  <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </label>
+            <div class="password-hint">Use at least 8 characters with letters and numbers</div>
+            <button type="submit" class="primary">Create Account</button>
+            <p class="form-message" id="register-message"></p>
+          </form>
+
+
+
+          <div class="auth-features">
+            <div class="feature-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>Secure & Encrypted</span>
+            </div>
+            <div class="feature-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Multi-Cloud Storage</span>
+            </div>
+            <div class="feature-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Real-time Analytics</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard-view" class="dashboard-view hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Welcome back, <span id="user-name">User</span>!</h2>
+            <p class="muted">Here's your cloud storage overview</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn" class="ghost">Logout</button>
+          </div>
+        </header>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Total Files</div>
+              <div class="stat-value" id="file-count">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="9" x2="15" y2="9"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Storage Used</div>
+              <div class="stat-value" id="storage-used">0 MB</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8 8 8 0 0 1-8-8z"></path>
+                <path d="M12 7v5l4 2"></path>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Cloud Services</div>
+              <div class="stat-value" id="active-services">--</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f97316 0%, #ff6b6b 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z">
+                </path>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Security Score</div>
+              <div class="stat-value" id="security-score">--</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel storage-panel full-width-panel" style="margin-top: 20px;">
+          <h3>Storage Usage</h3>
+          <div class="storage-info">
+            <div class="storage-used-text"><span id="storage-used-mb">--</span> used</div>
+            <div class="storage-bar">
+              <div class="storage-fill" id="storage-fill"></div>
+            </div>
+            <div class="storage-percent"><span id="storage-percent">--</span>%</div>
+          </div>
+        </div>
+
+        <div class="dashboard-sections" style="margin-top: 20px;">
+          <div class="dashboard-left">
+            <div class="panel recent-panel">
+              <h3>Recent Files</h3>
+              <div id="recent-files" class="recent-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-right">
+            <div class="panel distribution-panel">
+              <h3>Cloud Distribution</h3>
+              <div id="cloud-distribution" class="distribution-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Upload View -->
+      <section id="upload-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Upload Files</h2>
+            <p class="muted">Upload files to multiple cloud storage providers</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-upload" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-upload" class="ghost">Logout</button>
+          </div>
+        </header>
+
+        <form id="upload-form-upload" class="upload-sections">
+
+          <!-- Left: Big Drop Zone -->
+          <div class="upload-main">
+            <label class="upload-dropzone" for="file-upload">
+              <input type="file" id="file-upload" name="file" required style="display: none;" />
+              <div class="dropzone-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" style="color: #667eea; margin-bottom: 16px;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div class="drop-text">Drag & drop files here</div>
+                <div class="drop-or">or</div>
+                <div class="btn btn-browse" style="pointer-events: none;">Browse Files</div>
+                <div class="file-limits">Max file size: 100MB</div>
+                <div id="selected-file-name"
+                  style="margin-top:20px; color: var(--ink); font-weight: 500; font-size: 14px;"></div>
+              </div>
+            </label>
+            <button type="submit" class="btn btn-upload-submit">Upload</button>
+            <p class="form-message" id="upload-message-upload" style="margin-top: 10px;"></p>
+          </div>
+
+          <!-- Right: Settings & Security Info -->
+          <div class="upload-side">
+            <div class="panel upload-settings">
+              <h3 class="settings-title">Upload Settings</h3>
+
+              <div class="form-group">
+                <label class="font-bold">Select Cloud Storage</label>
+                <div class="select-wrapper">
+                  <select name="cloudService" required class="form-control rounded-pill">
+                    <option value="firebase">Firebase Storage</option>
+                    <option value="cloudinary">Cloudinary</option>
+                    <option value="aws">AWS S3 (Coming soon)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="font-bold">File Privacy</label>
+                <div class="select-wrapper">
+                  <select name="privacy" required class="form-control rounded-pill">
+                    <option value="private">Private</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="checkbox-container">
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="encrypt" checked disabled />
+                  <span class="checkmark"></span>
+                  <span class="checkbox-text">Auto-encrypt files (AES-256)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="panel upload-security-info mt-4"
+              style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border-color: rgba(102, 126, 234, 0.2);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="color: #667eea; margin-bottom: 12px;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink);">Security Features</h4>
+              <ul class="security-list"
+                style="margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
+                <li>✓ End-to-end encryption</li>
+                <li>✓ Secure file transfer</li>
+                <li>✓ Access control</li>
+                <li>✓ Activity logging</li>
+              </ul>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Files View -->
+      <section id="files-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>My Files</h2>
+            <p class="muted">Manage all your uploaded files</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-files" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-files" class="ghost">Logout</button>
+          </div>
+        </header>
+        <div class="files-section">
+          <div class="section-head">
+            <h3>All Files</h3>
+            <div class="filters">
+              <input type="text" id="search-input-files" placeholder="Search files" />
+              <select id="cloud-filter-files">
+                <option value="">All Clouds</option>
+                <option value="firebase">Firebase</option>
+                <option value="cloudinary">Cloudinary</option>
+              </select>
+              <button id="refresh-btn-files" class="ghost">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="table" id="files-table-files">
+            <div class="table-row table-head">
+              <span>Name</span>
+              <span>Cloud</span>
+              <span>Privacy</span>
+              <span>Size</span>
+              <span></span>
+            </div>
+            <div id="files-list-files"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics View -->
+      <section id="analytics-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Analytics</h2>
+            <p class="muted">Monitor your storage and usage statistics</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-analytics" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-analytics" class="ghost">Logout</button>
+          </div>
+        </header>
+        <div class="panel">
+          <h3>Analytics Coming Soon</h3>
+          <p class="muted">Detailed analytics dashboard will be available soon</p>
+        </div>
+      </section>
+
+      <!-- Security View -->
+      <section id="security-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Security</h2>
+            <p class="muted">Manage your security settings and permissions</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-security" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-security" class="ghost">Logout</button>
+          </div>
+        </header>
+        <div class="panel">
+          <h3>Security Coming Soon</h3>
+          <p class="muted">Security management features will be available soon</p>
+        </div>
+      </section>
+
+      <!-- Cloud Services View -->
+      <section id="services-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Cloud Services</h2>
+            <p class="muted">Manage your connected cloud services</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-services" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-services" class="ghost">Logout</button>
+          </div>
+        </header>
+        <div class="panel">
+          <h3>Cloud Services Coming Soon</h3>
+          <p class="muted">Cloud services management features will be available soon</p>
+        </div>
+      </section>
+
+      <!-- Settings View -->
+      <section id="settings-view" class="view-section hidden">
+        <header class="top-bar">
+          <div>
+            <h2>Settings</h2>
+            <p class="muted">Manage your preferences and account settings</p>
+          </div>
+          <div class="header-actions">
+            <button id="theme-toggle-settings" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </button>
+            <button id="logout-btn-settings" class="ghost">Logout</button>
+          </div>
+        </header>
+        <div class="panel">
+          <h3>Settings Coming Soon</h3>
+          <p class="muted">Settings management features will be available soon</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
