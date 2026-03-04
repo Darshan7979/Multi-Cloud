@@ -18,7 +18,10 @@ const state = {
   token: null,
   user: null,
   files: [],
+  summary: null,
 };
+
+let charts = {};
 
 // Theme toggle functionality
 const initTheme = () => {
@@ -49,6 +52,7 @@ const toggleTheme = () => {
   const isDark = document.body.classList.toggle('dark-theme');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   updateThemeIcon(isDark);
+  if (typeof renderAnalytics === 'function') renderAnalytics();
 };
 
 // Initialize theme on load
@@ -166,6 +170,7 @@ const apiRequest = async (path, options = {}) => {
 
 const loadStats = async () => {
   const summary = await apiRequest("/analytics/summary");
+  state.summary = summary;
 
   // Update old stats
   if (fileCount) fileCount.textContent = summary.fileCount;
@@ -226,6 +231,139 @@ const loadStats = async () => {
       empty.textContent = "No files uploaded yet";
       distributionContainer.appendChild(empty);
     }
+  }
+
+  renderAnalytics();
+};
+
+const renderAnalytics = () => {
+  if (!state.summary || !state.files) return;
+
+  // Total Bandwidth & Requests (Mock data if not in summary)
+  const bandwidthEl = document.getElementById("analytics-bandwidth");
+  const requestsEl = document.getElementById("analytics-requests");
+  
+  if (bandwidthEl) bandwidthEl.textContent = state.summary.bandwidthGB ? `${state.summary.bandwidthGB} GB` : "12.4 GB";
+  if (requestsEl) requestsEl.textContent = state.summary.totalRequests || "1,432";
+
+  // Data for Chart.js
+  const isDark = document.body.classList.contains('dark-theme');
+  const textColor = isDark ? '#e4e4e7' : '#0f172a';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    color: textColor,
+    plugins: {
+      legend: { labels: { color: textColor, font: { family: 'Outfit', size: 12 } } },
+      tooltip: { backgroundColor: isDark ? '#1a1a1a' : '#fff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1 }
+    }
+  };
+
+  // 1. Storage Usage Over Time (Line Chart)
+  const timelineCtx = document.getElementById('storageTimelineChart');
+  if (timelineCtx) {
+    if (charts.timeline) charts.timeline.destroy();
+    
+    // Mock timeline data for now
+    const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    const data = [10, 25, 40, 35, 60, state.summary.storageUsedMB || 75];
+
+    charts.timeline = new Chart(timelineCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Storage Used (MB)',
+          data: data,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderWidth: 3,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#6366f1',
+        }]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor } }
+        }
+      }
+    });
+  }
+
+  // 2. File Type Distribution (Doughnut Chart)
+  const fileTypeCtx = document.getElementById('fileTypeChart');
+  if (fileTypeCtx) {
+    if (charts.fileType) charts.fileType.destroy();
+    
+    const typeDistribution = {};
+    if (state.files.length > 0) {
+      state.files.forEach(f => {
+        const ext = f.originalName.split('.').pop().toLowerCase();
+        const type = ['jpg', 'png', 'jpeg', 'gif'].includes(ext) ? 'Images' :
+                     ['mp4', 'mov', 'avi'].includes(ext) ? 'Videos' :
+                     ['pdf', 'doc', 'docx', 'txt'].includes(ext) ? 'Documents' : 'Others';
+        typeDistribution[type] = (typeDistribution[type] || 0) + 1;
+      });
+    }
+
+    // If no files, mock data
+    const labels = Object.keys(typeDistribution).length ? Object.keys(typeDistribution) : ['Images', 'Documents', 'Videos', 'Others'];
+    const data = Object.keys(typeDistribution).length ? Object.values(typeDistribution) : [45, 25, 20, 10];
+
+    charts.fileType = new Chart(fileTypeCtx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        ...commonOptions,
+        cutout: '70%',
+      }
+    });
+  }
+
+  // 3. Cloud Provider Distribution (Pie Chart)
+  const cloudCtx = document.getElementById('cloudProviderChart');
+  if (cloudCtx) {
+    if (charts.cloud) charts.cloud.destroy();
+    
+    let labels = [];
+    let data = [];
+    
+    if (state.summary.cloudDistribution && Object.keys(state.summary.cloudDistribution).length > 0) {
+      Object.entries(state.summary.cloudDistribution).forEach(([service, info]) => {
+        labels.push(service.charAt(0).toUpperCase() + service.slice(1));
+        data.push(info.percentage);
+      });
+    } else {
+      labels = ['Firebase', 'Cloudinary', 'AWS'];
+      data = [50, 30, 20];
+    }
+
+    charts.cloud = new Chart(cloudCtx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: ['#ff9800', '#3498db', '#2ecc40'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: commonOptions
+    });
   }
 };
 
@@ -304,6 +442,7 @@ const loadFiles = async () => {
   const data = await apiRequest(`/files?${params.toString()}`);
   state.files = data.files;
   renderFiles();
+  renderAnalytics();
 };
 
 const syncUserWithBackend = async (firebaseUser) => {
