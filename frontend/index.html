@@ -379,51 +379,49 @@
               <h3 class="settings-title">Upload Settings</h3>
 
               <div class="form-group">
-                <div class="form-group slide-up" style="animation-delay: 0.1s">
-                  <label for="upload-cloud" class="font-bold">Select Cloud Service</label>
-                  <select id="upload-cloud" name="cloudService" required class="form-select glass-input">
-                    <option value="firebase">Google Firebase</option>
-                    <option value="cloudinary">Cloudinary</option>
-                    <option value="aws">AWS S3</option>
-                    <option value="supabase">Supabase Storage</option>
+                <label for="upload-cloud" class="font-bold">Select Cloud Service</label>
+                <select id="upload-cloud" name="cloudService" required class="form-select glass-input">
+                  <option value="firebase">Google Firebase</option>
+                  <option value="cloudinary">Cloudinary</option>
+                  <option value="aws">AWS S3</option>
+                  <option value="supabase">Supabase Storage</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="font-bold">File Privacy</label>
+                <div class="select-wrapper">
+                  <select name="privacy" required class="form-control rounded-pill">
+                    <option value="private">Private</option>
+                    <option value="public">Public</option>
                   </select>
                 </div>
               </div>
-            </div>
 
-            <div class="form-group">
-              <label class="font-bold">File Privacy</label>
-              <div class="select-wrapper">
-                <select name="privacy" required class="form-control rounded-pill">
-                  <option value="private">Private</option>
-                  <option value="public">Public</option>
-                </select>
+              <div class="checkbox-container">
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="encrypt" checked disabled />
+                  <span class="checkmark"></span>
+                  <span class="checkbox-text">Auto-encrypt files (AES-256)</span>
+                </label>
               </div>
             </div>
 
-            <div class="checkbox-container">
-              <label class="custom-checkbox">
-                <input type="checkbox" name="encrypt" checked disabled />
-                <span class="checkmark"></span>
-                <span class="checkbox-text">Auto-encrypt files (AES-256)</span>
-              </label>
+            <div class="panel upload-security-info mt-4"
+              style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border-color: rgba(102, 126, 234, 0.2);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="color: #667eea; margin-bottom: 12px;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink);">Security Features</h4>
+              <ul
+                style="margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
+                <li>✓ End-to-end encryption</li>
+                <li>✓ Secure file transfer</li>
+                <li>✓ Access control</li>
+                <li>✓ Activity logging</li>
+              </ul>
             </div>
-          </div>
-
-          <div class="panel upload-security-info mt-4"
-            style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border-color: rgba(102, 126, 234, 0.2);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              style="color: #667eea; margin-bottom: 12px;">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink);">Security Features</h4>
-            <ul class="security-list"
-              style="margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-              <li>✓ End-to-end encryption</li>
-              <li>✓ Secure file transfer</li>
-              <li>✓ Access control</li>
-              <li>✓ Activity logging</li>
-            </ul>
           </div>
         </form>
       </section>
