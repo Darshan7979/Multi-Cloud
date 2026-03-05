@@ -7,7 +7,7 @@ const FileSchema = new mongoose.Schema(
     storageName: { type: String, required: true },
     mimeType: { type: String, required: true },
     sizeBytes: { type: Number, required: true },
-    cloudService: { type: String, required: true, enum: ["firebase", "cloudinary"] },
+    cloudService: { type: String, required: true, enum: ["firebase", "cloudinary", "supabase"] },
     privacy: { type: String, required: true, enum: ["public", "private"] },
     url: { type: String, required: true },
     publicId: { type: String },

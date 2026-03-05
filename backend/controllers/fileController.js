@@ -1,10 +1,11 @@
 const { initFirebase } = require("../config/firebase");
 const { initCloudinary } = require("../config/cloudinary");
+const { initSupabase } = require("../config/supabase");
 const File = require("../models/File");
 const Activity = require("../models/Activity");
 const { v4: uuidv4 } = require("uuid");
 
-const allowedClouds = ["firebase", "cloudinary"];
+const allowedClouds = ["firebase", "cloudinary", "supabase"];
 const allowedPrivacy = ["public", "private"];
 
 const uploadToFirebase = async ({ buffer, originalName, mimeType, userId, privacy }) => {
@@ -57,6 +58,54 @@ const uploadToCloudinary = ({ buffer, originalName, userId }) =>
     stream.end(buffer);
   });
 
+const uploadToSupabase = async ({ buffer, originalName, mimeType, userId, privacy }) => {
+  const supabase = initSupabase();
+  const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const storageName = `${userId}/${uuidv4()}-${safeName}`;
+  const bucketName = "multicloud";
+
+  // Check if bucket exists, try to create if it doesn't
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+  if (!listError && buckets) {
+    const bucketExists = buckets.some(b => b.name === bucketName);
+    if (!bucketExists) {
+      console.log(`Bucket ${bucketName} not found, attempting to create it...`);
+      await supabase.storage.createBucket(bucketName, { public: true });
+    }
+  }
+
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .upload(storageName, buffer, {
+      contentType: mimeType,
+      upsert: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  if (privacy === "public") {
+    // For supabase, you typically set the bucket to public. 
+    // Here we just get the public URL.
+    const { data: publicData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(storageName);
+    return { url: publicData.publicUrl, storageName, publicId: null };
+  }
+
+  // Private file, generate signed URL
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from(bucketName)
+    .createSignedUrl(storageName, 24 * 60 * 60); // 24 hours
+
+  if (signedError) {
+    throw signedError;
+  }
+
+  return { url: signedData.signedUrl, storageName, publicId: null };
+};
+
 const listFiles = async (req, res, next) => {
   try {
     const { search, cloud } = req.query;
@@ -104,10 +153,18 @@ const uploadFile = async (req, res, next) => {
         userId: req.user.id,
         privacy,
       });
-    } else {
+    } else if (cloudService === "cloudinary") {
       uploadResult = await uploadToCloudinary({
         buffer: req.file.buffer,
         originalName: req.file.originalname,
+        userId: req.user.id,
+        privacy,
+      });
+    } else if (cloudService === "supabase") {
+      uploadResult = await uploadToSupabase({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
         userId: req.user.id,
         privacy,
       });
@@ -148,9 +205,13 @@ const deleteFile = async (req, res, next) => {
     if (fileDoc.cloudService === "firebase") {
       const bucket = initFirebase();
       await bucket.file(fileDoc.storageName).delete();
-    } else {
+    } else if (fileDoc.cloudService === "cloudinary") {
       const cloudinary = initCloudinary();
       await cloudinary.uploader.destroy(fileDoc.publicId, { resource_type: "raw" });
+    } else if (fileDoc.cloudService === "supabase") {
+      const supabase = initSupabase();
+      const { error } = await supabase.storage.from("multicloud").remove([fileDoc.storageName]);
+      if (error) throw error;
     }
 
     await File.deleteOne({ _id: fileDoc._id });
