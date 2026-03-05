@@ -176,8 +176,12 @@ const loadStats = async () => {
   if (fileCount) fileCount.textContent = summary.fileCount;
   if (privateCount) privateCount.textContent = summary.privateCount;
 
-  const securityScoreEl = document.getElementById("security-score");
-  if (securityScoreEl) securityScoreEl.textContent = `${summary.securityScore}%`;
+  const securityScoreCardEl = document.querySelectorAll("#security-score");
+  if (securityScoreCardEl.length > 0) {
+    securityScoreCardEl.forEach(el => {
+      el.textContent = `${summary.securityScore}%`;
+    });
+  }
 
   if (securityBar) securityBar.style.width = `${summary.securityScore}%`;
 
@@ -191,13 +195,21 @@ const loadStats = async () => {
     storageUsed.textContent = `${summary.storageUsedMB} MB`;
   }
   const storageMbEl = document.getElementById("storage-used-mb");
-  if (storageMbEl) storageMbEl.textContent = `${summary.storageUsedMB} MB`;
+  if (storageMbEl) {
+    const parent = storageMbEl.parentElement;
+    if (parent) {
+      parent.innerHTML = `<span id="storage-used-mb">${summary.storageUsedMB} MB</span> of 5 GB used`;
+    }
+  }
+
+  const MAX_STORAGE_MB = 5 * 1024; // 5 GB limit
+  const storageUsedPercent = Math.min((summary.storageUsedMB / MAX_STORAGE_MB) * 100, 100);
 
   const storagePercentEl = document.getElementById("storage-percent");
-  if (storagePercentEl) storagePercentEl.textContent = (summary.storageUsedPercent || 0).toFixed(1);
+  if (storagePercentEl) storagePercentEl.textContent = storageUsedPercent.toFixed(1);
 
   const storageFillEl = document.getElementById("storage-fill");
-  if (storageFillEl) storageFillEl.style.width = `${summary.storageUsedPercent || 0}%`;
+  if (storageFillEl) storageFillEl.style.width = `${storageUsedPercent}%`;
 
   // Populate cloud distribution
   const distributionContainer = document.getElementById("cloud-distribution");
