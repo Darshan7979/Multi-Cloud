@@ -187,6 +187,9 @@ const loadStats = async () => {
   if (activeServicesEl) activeServicesEl.textContent = cloudServices > 0 ? cloudServices : "--";
 
   // Update new dashboard elements
+  if (storageUsed) {
+    storageUsed.textContent = `${summary.storageUsedMB} MB`;
+  }
   const storageMbEl = document.getElementById("storage-used-mb");
   if (storageMbEl) storageMbEl.textContent = `${summary.storageUsedMB} MB`;
 
