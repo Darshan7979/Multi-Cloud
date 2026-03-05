@@ -18,11 +18,14 @@ const getSummary = async (req, res, next) => {
     });
 
     const storageUsedMB = Math.round((stats.storageUsedBytes / (1024 * 1024)) * 100) / 100;
+    const storageQuotaMB = 2048; // Default 2GB quota
+    const storageUsedPercent = Math.min(100, (storageUsedMB / storageQuotaMB) * 100);
 
     return res.json({
       fileCount: stats.fileCount,
       storageUsedBytes: stats.storageUsedBytes,
       storageUsedMB,
+      storageUsedPercent,
       byCloud: stats.byCloud,
       privateCount,
       securityScore,

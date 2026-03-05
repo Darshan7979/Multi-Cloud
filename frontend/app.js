@@ -220,6 +220,7 @@ const loadStats = async () => {
       const colors = {
         firebase: "#ff9800",
         cloudinary: "#3498db",
+        supabase: "#3ECF8E",
         mongodb: "#2ecc40"
       };
 
@@ -227,14 +228,17 @@ const loadStats = async () => {
         const percentage = summary.storageUsedBytes > 0 ? (item.totalBytes / summary.storageUsedBytes) * 100 : 0;
         const color = colors[item.cloudService] || "#5856D6";
 
+        const displayWidth = percentage > 0 && percentage < 1 ? 1 : percentage;
+        const displayPercent = percentage > 0 && percentage < 1 ? '<1' : Math.round(percentage);
+
         const div = document.createElement("div");
         div.className = "distribution-item";
         div.innerHTML = `
           <div class="dist-label">${item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1)}</div>
           <div class="dist-bar">
-            <div class="dist-fill" style="width: ${percentage}%; background: ${color};"></div>
+            <div class="dist-fill" style="width: ${displayWidth}%; background: ${color};"></div>
           </div>
-          <div class="dist-percent">${Math.round(percentage)}%</div>
+          <div class="dist-percent">${displayPercent}%</div>
         `;
         distributionContainer.appendChild(div);
       });
@@ -410,7 +414,7 @@ const renderAnalytics = () => {
         datasets: [{
           data: data,
           backgroundColor: state.summary.byCloud && state.summary.byCloud.length > 0
-            ? ['#ff9800', '#3498db', '#2ecc40']
+            ? ['#ff9800', '#3498db', '#3ECF8E', '#2ecc40']
             : ['#e2e8f0'],
           borderWidth: 0,
           hoverOffset: 4
@@ -499,7 +503,7 @@ const loadFiles = async () => {
   renderAnalytics();
 };
 
-const syncUserWithBackend = async (firebaseUser) => {
+const syncUserWithBackend = async (firebaseUser, bypassRedirect = false) => {
   const idToken = await firebaseUser.getIdToken();
 
   const response = await fetch(`${API_BASE}/auth/sync`, {
@@ -516,20 +520,26 @@ const syncUserWithBackend = async (firebaseUser) => {
   state.token = idToken;
   state.user = data.user;
   if (userName) userName.textContent = state.user.name;
-  setView("dashboard");
+
   await loadStats();
   await loadFiles();
+
+  if (!bypassRedirect) {
+    setView("dashboard");
+  }
 };
 
 const login = async (email, password) => {
   const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
   await syncUserWithBackend(userCredential.user);
+  setView("dashboard");
 };
 
 const register = async (name, email, password) => {
   const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
   await userCredential.user.updateProfile({ displayName: name });
   await syncUserWithBackend(userCredential.user);
+  setView("dashboard");
 };
 
 const uploadFile = async (payload) => {
@@ -772,9 +782,12 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
 window.auth.onAuthStateChanged(async (firebaseUser) => {
   if (firebaseUser) {
     try {
-      await syncUserWithBackend(firebaseUser);
+      await syncUserWithBackend(firebaseUser, true);
+      // We no longer auto-redirect here. We let the user stay on the login screen, 
+      // but their background token session is restored.
     } catch (err) {
       console.error("Failed to sync user:", err);
+      // If sync fails, don't force them out, just let them see auth view
       setView("auth");
     }
   } else {

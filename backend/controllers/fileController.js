@@ -3,11 +3,12 @@ const { initCloudinary } = require("../config/cloudinary");
 const { initS3 } = require("../config/s3");
 const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { initSupabase } = require("../config/supabase");
 const File = require("../models/File");
 const Activity = require("../models/Activity");
 const { v4: uuidv4 } = require("uuid");
 
-const allowedClouds = ["firebase", "cloudinary", "aws"];
+const allowedClouds = ["firebase", "cloudinary", "aws", "supabase"];
 const allowedPrivacy = ["public", "private"];
 
 const uploadToFirebase = async ({ buffer, originalName, mimeType, userId, privacy }) => {
@@ -79,12 +80,45 @@ const uploadToS3 = async ({ buffer, originalName, mimeType, userId, privacy }) =
   if (privacy === "public") {
     url = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${storageName}`;
   } else {
-    // Generate a secure signed URL valid for 24 hours
     const getCommand = new GetObjectCommand({ Bucket: bucket, Key: storageName });
     url = await getSignedUrl(s3Client, getCommand, { expiresIn: 24 * 60 * 60 });
   }
 
   return { url, storageName, publicId: null };
+};
+
+const uploadToSupabase = async ({ buffer, originalName, mimeType, userId, privacy }) => {
+  const supabase = initSupabase();
+  const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const storageName = `${userId}/${uuidv4()}-${safeName}`;
+  const bucketName = "multicloud";
+
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+  if (!listError && buckets) {
+    const bucketExists = buckets.some(b => b.name === bucketName);
+    if (!bucketExists) {
+      await supabase.storage.createBucket(bucketName, { public: true });
+    }
+  }
+
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .upload(storageName, buffer, { contentType: mimeType, upsert: false });
+
+  if (error) throw error;
+
+  if (privacy === "public") {
+    const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(storageName);
+    return { url: publicData.publicUrl, storageName, publicId: null };
+  }
+
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from(bucketName)
+    .createSignedUrl(storageName, 24 * 60 * 60);
+
+  if (signedError) throw signedError;
+
+  return { url: signedData.signedUrl, storageName, publicId: null };
 };
 
 const listFiles = async (req, res, next) => {
@@ -149,6 +183,14 @@ const uploadFile = async (req, res, next) => {
         userId: req.user.id,
         privacy,
       });
+    } else if (cloudService === "supabase") {
+      uploadResult = await uploadToSupabase({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        userId: req.user.id,
+        privacy,
+      });
     }
 
     const fileDoc = await File.create({
@@ -196,6 +238,10 @@ const deleteFile = async (req, res, next) => {
         Key: fileDoc.storageName,
       });
       await s3Client.send(command);
+    } else if (fileDoc.cloudService === "supabase") {
+      const supabase = initSupabase();
+      const { error } = await supabase.storage.from("multicloud").remove([fileDoc.storageName]);
+      if (error) throw error;
     }
 
     await File.deleteOne({ _id: fileDoc._id });
