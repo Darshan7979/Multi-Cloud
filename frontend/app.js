@@ -182,7 +182,7 @@ const loadStats = async () => {
   if (securityBar) securityBar.style.width = `${summary.securityScore}%`;
 
   // Active services (count cloud services with files)
-  const cloudServices = summary.cloudDistribution ? Object.keys(summary.cloudDistribution).length : 0;
+  const cloudServices = summary.byCloud ? summary.byCloud.length : 0;
   const activeServicesEl = document.getElementById("active-services");
   if (activeServicesEl) activeServicesEl.textContent = cloudServices > 0 ? cloudServices : "--";
 
@@ -204,27 +204,27 @@ const loadStats = async () => {
   if (distributionContainer) {
     distributionContainer.innerHTML = "";
 
-    if (summary.cloudDistribution && Object.keys(summary.cloudDistribution).length > 0) {
+    if (summary.byCloud && summary.byCloud.length > 0) {
       const colors = {
         firebase: "#ff9800",
         cloudinary: "#3498db",
         mongodb: "#2ecc40"
       };
 
-      Object.entries(summary.cloudDistribution).forEach(([service, data]) => {
-        const percentage = data.percentage || 0;
-        const color = colors[service] || "#5856D6";
+      summary.byCloud.forEach((item) => {
+        const percentage = summary.storageUsedBytes > 0 ? (item.totalBytes / summary.storageUsedBytes) * 100 : 0;
+        const color = colors[item.cloudService] || "#5856D6";
 
-        const item = document.createElement("div");
-        item.className = "distribution-item";
-        item.innerHTML = `
-          <div class="dist-label">${service.charAt(0).toUpperCase() + service.slice(1)}</div>
+        const div = document.createElement("div");
+        div.className = "distribution-item";
+        div.innerHTML = `
+          <div class="dist-label">${item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1)}</div>
           <div class="dist-bar">
             <div class="dist-fill" style="width: ${percentage}%; background: ${color};"></div>
           </div>
           <div class="dist-percent">${Math.round(percentage)}%</div>
         `;
-        distributionContainer.appendChild(item);
+        distributionContainer.appendChild(div);
       });
     } else {
       const empty = document.createElement("div");
@@ -380,10 +380,11 @@ const renderAnalytics = () => {
     let labels = [];
     let data = [];
 
-    if (state.summary.cloudDistribution && Object.keys(state.summary.cloudDistribution).length > 0) {
-      Object.entries(state.summary.cloudDistribution).forEach(([service, info]) => {
-        labels.push(service.charAt(0).toUpperCase() + service.slice(1));
-        data.push(info.percentage.toFixed(2));
+    if (state.summary.byCloud && state.summary.byCloud.length > 0) {
+      state.summary.byCloud.forEach((item) => {
+        const percentage = state.summary.storageUsedBytes > 0 ? (item.totalBytes / state.summary.storageUsedBytes) * 100 : 0;
+        labels.push(item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1));
+        data.push(percentage.toFixed(2));
       });
     } else {
       labels = ['No Files'];
@@ -396,7 +397,7 @@ const renderAnalytics = () => {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: state.summary.cloudDistribution && Object.keys(state.summary.cloudDistribution).length > 0
+          backgroundColor: state.summary.byCloud && state.summary.byCloud.length > 0
             ? ['#ff9800', '#3498db', '#2ecc40']
             : ['#e2e8f0'],
           borderWidth: 0,
