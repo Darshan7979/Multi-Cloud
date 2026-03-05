@@ -1,10 +1,13 @@
 const { initFirebase } = require("../config/firebase");
 const { initCloudinary } = require("../config/cloudinary");
+const { initS3 } = require("../config/s3");
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const File = require("../models/File");
 const Activity = require("../models/Activity");
 const { v4: uuidv4 } = require("uuid");
 
-const allowedClouds = ["firebase", "cloudinary"];
+const allowedClouds = ["firebase", "cloudinary", "aws"];
 const allowedPrivacy = ["public", "private"];
 
 const uploadToFirebase = async ({ buffer, originalName, mimeType, userId, privacy }) => {
@@ -57,6 +60,33 @@ const uploadToCloudinary = ({ buffer, originalName, userId }) =>
     stream.end(buffer);
   });
 
+const uploadToS3 = async ({ buffer, originalName, mimeType, userId, privacy }) => {
+  const s3Client = initS3();
+  const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const storageName = `${userId}/${uuidv4()}-${safeName}`;
+  const bucket = process.env.AWS_S3_BUCKET;
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: storageName,
+    Body: buffer,
+    ContentType: mimeType,
+  });
+
+  await s3Client.send(command);
+
+  let url;
+  if (privacy === "public") {
+    url = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${storageName}`;
+  } else {
+    // Generate a secure signed URL valid for 24 hours
+    const getCommand = new GetObjectCommand({ Bucket: bucket, Key: storageName });
+    url = await getSignedUrl(s3Client, getCommand, { expiresIn: 24 * 60 * 60 });
+  }
+
+  return { url, storageName, publicId: null };
+};
+
 const listFiles = async (req, res, next) => {
   try {
     const { search, cloud } = req.query;
@@ -104,10 +134,18 @@ const uploadFile = async (req, res, next) => {
         userId: req.user.id,
         privacy,
       });
-    } else {
+    } else if (cloudService === "cloudinary") {
       uploadResult = await uploadToCloudinary({
         buffer: req.file.buffer,
         originalName: req.file.originalname,
+        userId: req.user.id,
+        privacy,
+      });
+    } else if (cloudService === "aws") {
+      uploadResult = await uploadToS3({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
         userId: req.user.id,
         privacy,
       });
@@ -148,9 +186,16 @@ const deleteFile = async (req, res, next) => {
     if (fileDoc.cloudService === "firebase") {
       const bucket = initFirebase();
       await bucket.file(fileDoc.storageName).delete();
-    } else {
+    } else if (fileDoc.cloudService === "cloudinary") {
       const cloudinary = initCloudinary();
       await cloudinary.uploader.destroy(fileDoc.publicId, { resource_type: "raw" });
+    } else if (fileDoc.cloudService === "aws") {
+      const s3Client = initS3();
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: fileDoc.storageName,
+      });
+      await s3Client.send(command);
     }
 
     await File.deleteOne({ _id: fileDoc._id });
