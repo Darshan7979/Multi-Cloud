@@ -715,8 +715,8 @@ button.primary:hover {
 }
 
 .brand-mark:hover {
-  transform: scale(1.05) rotate(-5deg);
-  animation: glow 2s ease infinite;
+  transform: scale(1.05);
+  /* Removed the '-rotate(5deg)' and the glow animation */
 }
 
 /* Input Focus Animation */
@@ -932,25 +932,12 @@ body {
   width: 56px;
   height: 56px;
   border-radius: var(--radius-md);
-  background: var(--gradient-purple);
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-}
-
-.brand-mark::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shine 3s infinite;
-  pointer-events: none;
 }
 
 .brand-mark svg {
@@ -969,21 +956,14 @@ body {
   margin: 0;
   font-size: var(--text-xl);
   letter-spacing: -0.02em;
-  color: var(--ink);
+  color: var(--accent-dark);
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .brand p {
   margin: var(--space-1) 0 0;
-  color: transparent;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--accent);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   text-transform: uppercase;
