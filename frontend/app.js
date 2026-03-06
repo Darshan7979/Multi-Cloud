@@ -283,16 +283,16 @@ const loadStats = async () => {
 const renderAnalytics = () => {
   if (!state.summary || !state.files) return;
 
-  // Total Bandwidth & Requests (Derived dynamic data)
+  // Total Bandwidth & Requests (Real data from backend)
   const bandwidthEl = document.getElementById("analytics-bandwidth");
   const requestsEl = document.getElementById("analytics-requests");
 
   if (bandwidthEl) {
-    const totalGB = (state.summary.storageUsedMB / 1024).toFixed(4);
+    const totalGB = state.summary.totalBandwidthGB || 0;
     bandwidthEl.textContent = `${totalGB} GB`;
   }
   if (requestsEl) {
-    requestsEl.textContent = state.files.length * 15 + Math.floor(Math.random() * 50);
+    requestsEl.textContent = state.summary.totalRequests || 0;
   }
 
   // Data for Chart.js
@@ -911,6 +911,41 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
     }
   });
 });
+
+// Forgot Password Handler
+const forgotLink = document.querySelector(".forgot-link");
+if (forgotLink) {
+  forgotLink.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    // Try to get the email from the login form
+    const loginEmailInput = document.querySelector('#login-form input[name="email"]');
+    let email = loginEmailInput ? loginEmailInput.value.trim() : "";
+
+    if (!email) {
+      email = prompt("Enter your registered email address:");
+    }
+
+    if (!email || !email.includes("@")) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    try {
+      await window.auth.sendPasswordResetEmail(email);
+      showToast(`Password reset email sent to ${email}. Check your inbox!`, "success", 6000);
+    } catch (err) {
+      console.error("Forgot password error:", err);
+      if (err.code === "auth/user-not-found") {
+        showToast("No account found with that email address.", "error");
+      } else if (err.code === "auth/invalid-email") {
+        showToast("Please enter a valid email address.", "error");
+      } else {
+        showToast("Failed to send reset email. Please try again.", "error");
+      }
+    }
+  });
+}
 
 // Firebase Auth State Listener
 window.auth.onAuthStateChanged(async (firebaseUser) => {

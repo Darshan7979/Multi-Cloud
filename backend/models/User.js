@@ -5,6 +5,8 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true, index: true },
   emailVerified: { type: Boolean, default: false },
+  totalBandwidth: { type: Number, default: 0 },
+  totalRequests: { type: Number, default: 0 },
   lastLoginAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
 });

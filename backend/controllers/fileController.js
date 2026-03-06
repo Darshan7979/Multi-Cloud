@@ -5,6 +5,7 @@ const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require("@aw
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { initSupabase } = require("../config/supabase");
 const File = require("../models/File");
+const User = require("../models/User");
 const Activity = require("../models/Activity");
 const { v4: uuidv4 } = require("uuid");
 
@@ -211,6 +212,11 @@ const uploadFile = async (req, res, next) => {
       detail: `${cloudService} upload: ${fileDoc.originalName}`,
     });
 
+    // Track bandwidth and requests
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: { totalBandwidth: req.file.size, totalRequests: 1 }
+    });
+
     return res.status(201).json({ file: fileDoc });
   } catch (err) {
     return next(err);
@@ -250,6 +256,11 @@ const deleteFile = async (req, res, next) => {
       userId: req.user.id,
       action: "delete",
       detail: `${fileDoc.cloudService} delete: ${fileDoc.originalName}`,
+    });
+
+    // Track requests
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: { totalRequests: 1 }
     });
 
     return res.json({ message: "File deleted" });
