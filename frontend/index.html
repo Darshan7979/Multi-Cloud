@@ -107,7 +107,7 @@
     </aside>
 
     <main class="main">
-      <section id="auth-view" class="auth-view">
+      <section id="auth-view" class="auth-view hidden">
         <div class="auth-card">
           <div class="auth-header">
             <div class="auth-logo">
@@ -470,15 +470,8 @@
               <button id="refresh-btn-files" class="ghost">↻ Refresh</button>
             </div>
           </div>
-          <div class="table" id="files-table-files">
-            <div class="table-row table-head">
-              <span>Name</span>
-              <span>Cloud</span>
-              <span>Privacy</span>
-              <span>Size</span>
-              <span></span>
-            </div>
-            <div id="files-list-files"></div>
+          <div class="files-grid" id="files-list-files">
+            <!-- Dynamically populated -->
           </div>
         </div>
       </section>

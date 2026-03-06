@@ -258,4 +258,34 @@ const deleteFile = async (req, res, next) => {
   }
 };
 
-module.exports = { listFiles, uploadFile, deleteFile };
+const renameFile = async (req, res, next) => {
+  try {
+    const { newName } = req.body;
+
+    if (!newName || newName.trim() === '') {
+      return res.status(400).json({ message: "New name is required" });
+    }
+
+    const fileDoc = await File.findOne({ _id: req.params.id, userId: req.user.id });
+
+    if (!fileDoc) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const oldName = fileDoc.originalName;
+    fileDoc.originalName = newName.trim();
+    await fileDoc.save();
+
+    await Activity.create({
+      userId: req.user.id,
+      action: "rename",
+      detail: `Renamed file from '${oldName}' to '${fileDoc.originalName}'`,
+    });
+
+    return res.json({ message: "File renamed successfully", file: fileDoc });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { listFiles, uploadFile, deleteFile, renameFile };

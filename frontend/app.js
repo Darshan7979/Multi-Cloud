@@ -439,27 +439,113 @@ const renderFiles = () => {
   }
 
   state.files.forEach((file) => {
-    const row = document.createElement("div");
-    row.className = "table-row";
+    const card = document.createElement("div");
+    card.className = "file-card";
 
-    row.innerHTML = `
-      <span class="file-name-cell">${file.originalName}</span>
-      <span class="file-cloud-cell">${file.cloudService}</span>
-      <span class="file-privacy-cell">${file.privacy}</span>
-      <span class="file-size-cell">${Math.round(file.sizeBytes / 1024)} KB</span>
-      <button class="file-action ghost" data-id="${file._id}">Delete</button>
+    // Add file icon, details, and action buttons wrapper
+    card.innerHTML = `
+      <div class="file-card-header">
+        <div class="file-icon-large">${getFileIcon(file.originalName)}</div>
+        <div class="file-badges">
+          <span class="badge privacy-${file.privacy}">
+            ${file.privacy === 'private' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>'}
+          </span>
+          <span class="badge cloud-badge">${file.cloudService}</span>
+        </div>
+      </div>
+      <div class="file-card-body">
+        <h4 class="file-name" title="${file.originalName}">${file.originalName}</h4>
+        <p class="file-size">${(file.sizeBytes / 1024 / 1024).toFixed(2)} MB</p>
+      </div>
+      <div class="file-card-actions">
+        <button class="action-btn download-btn" data-url="${file.url}" title="Download">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download</span>
+        </button>
+        <div class="action-btn-group">
+          <button class="action-btn file-action" data-id="${file._id}" title="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
     `;
 
-    filesList.appendChild(row);
+    filesList.appendChild(card);
   });
 
+  // Attach event listeners to buttons
+
+  // Delete Button
   document.querySelectorAll(".file-action").forEach((button) => {
     button.addEventListener("click", async () => {
-      await deleteFile(button.dataset.id);
+      // Add a simple confirmation dialog before deleting
+      if (confirm('Are you sure you want to delete this file?')) {
+        const tr = button.closest('.file-card');
+        tr.style.opacity = '0.5';
+        try {
+          await deleteFile(button.dataset.id);
+        } catch (error) {
+          console.error(error)
+          tr.style.opacity = '1';
+          alert("Delete failed")
+        }
+      }
     });
   });
 
-  // Populate Dashboard Recent Files
+  // Rename Button
+  document.querySelectorAll(".rename-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const currentName = button.dataset.name;
+      const newName = prompt("Enter new file name:", currentName);
+      if (newName && newName !== currentName) {
+        try {
+          await renameFile(button.dataset.id, newName);
+        } catch (e) {
+          alert("Error renaming file: " + e.message);
+        }
+      }
+    });
+  });
+
+  // View Button
+  document.querySelectorAll(".view-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      window.open(button.dataset.url, '_blank');
+    });
+  });
+
+  // Download Button
+  document.querySelectorAll(".download-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        // Attempt to fetch file directly as a Blob for a seamless native download
+        const response = await fetch(button.dataset.url);
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const fileName = button.closest('.file-card').querySelector('.file-name').textContent;
+
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (e) {
+        console.error("Direct download failed, falling back to new tab window...", e);
+        // Fallback to opening the signed URL in a new tab if CORS occurs
+        window.open(button.dataset.url, '_blank');
+      }
+    });
+  });
   const recentFilesContainer = document.getElementById("recent-files");
   if (recentFilesContainer) {
     recentFilesContainer.innerHTML = "";
@@ -553,6 +639,15 @@ const deleteFile = async (id) => {
   await apiRequest(`/files/${id}`, { method: "DELETE" });
   await loadFiles();
   await loadStats();
+};
+
+const renameFile = async (id, newName) => {
+  await apiRequest(`/files/${id}/rename`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newName }),
+  });
+  await loadFiles();
 };
 
 loginForm.addEventListener("submit", async (event) => {
@@ -782,17 +877,18 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
 window.auth.onAuthStateChanged(async (firebaseUser) => {
   if (firebaseUser) {
     try {
-      await syncUserWithBackend(firebaseUser, true);
-      // We no longer auto-redirect here. We let the user stay on the login screen, 
-      // but their background token session is restored.
+      await syncUserWithBackend(firebaseUser, false);
+      // User is already logged in, redirect to dashboard
     } catch (err) {
       console.error("Failed to sync user:", err);
       // If sync fails, don't force them out, just let them see auth view
+      authView.classList.remove("hidden");
       setView("auth");
     }
   } else {
     state.token = null;
     state.user = null;
+    authView.classList.remove("hidden");
     setView("auth");
   }
 });
