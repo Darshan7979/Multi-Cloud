@@ -8,6 +8,7 @@ const { initFirebase } = require("./config/firebase");
 const authRoutes = require("./routes/auth");
 const fileRoutes = require("./routes/files");
 const analyticsRoutes = require("./routes/analytics");
+const paymentRoutes = require("./routes/payments");
 
 const { errorHandler } = require("./middleware/errorHandler");
 
@@ -26,6 +27,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(errorHandler);
 

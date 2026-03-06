@@ -6,15 +6,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CloudFusion - Multi-Cloud Storage</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="stylish-additions.css" />
+  <link rel="stylesheet" href="premium-ui.css" />
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="firebase-config.js"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Razorpay -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script defer src="app.js"></script>
 </head>
 
@@ -60,8 +64,9 @@
         </button>
         <button class="nav-btn" data-view="analytics">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="2" x2="12" y2="22"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            <line x1="12" y1="20" x2="12" y2="10"></line>
+            <line x1="18" y1="20" x2="18" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="16"></line>
           </svg>
           <span>Analytics</span>
         </button>
@@ -232,9 +237,12 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                <polyline points="13 2 13 9 20 9"></polyline>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 7H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                <line x1="12" y1="12" x2="12" y2="16" />
+                <line x1="10" y1="14" x2="14" y2="14" />
               </svg>
             </div>
             <div class="stat-content">
@@ -245,10 +253,9 @@
 
           <div class="stat-card">
             <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="9" y1="9" x2="15" y2="9"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
               </svg>
             </div>
             <div class="stat-content">
@@ -259,9 +266,14 @@
 
           <div class="stat-card">
             <div class="stat-icon" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                <path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8 8 8 0 0 1-8-8z"></path>
-                <path d="M12 7v5l4 2"></path>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="3" />
+                <circle cx="19" cy="14" r="3" />
+                <circle cx="5" cy="14" r="3" />
+                <line x1="12" y1="8" x2="19" y2="11" />
+                <line x1="12" y1="8" x2="5" y2="11" />
+                <line x1="5" y1="14" x2="19" y2="14" />
               </svg>
             </div>
             <div class="stat-content">
@@ -272,10 +284,10 @@
 
           <div class="stat-card">
             <div class="stat-icon" style="background: linear-gradient(135deg, #f97316 0%, #ff6b6b 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z">
-                </path>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <polyline points="9 12 11 14 15 10" />
               </svg>
             </div>
             <div class="stat-content">
@@ -624,9 +636,113 @@
             <button id="logout-btn-services" class="ghost">Logout</button>
           </div>
         </header>
-        <div class="panel">
-          <h3>Cloud Services Coming Soon</h3>
-          <p class="muted">Cloud services management features will be available soon</p>
+        <div class="pricing-container">
+          <div class="pricing-header">
+            <h3>Choose Your Storage Plan</h3>
+            <p class="muted">Upgrade your storage and unlock premium features.</p>
+          </div>
+          <div class="pricing-grid">
+            <!-- Basic Tier -->
+            <div class="pricing-card">
+              <div class="tier-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <h4>Basic</h4>
+              <div class="price">
+                <span class="currency">₹</span><span class="amount">0</span><span class="period">/mo</span>
+              </div>
+              <ul class="features-list">
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> 5 GB Storage</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> All Cloud Providers</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> Standard Speed</li>
+                <li class="disabled"><svg width="16" height="16" fill="none" stroke="#a1a1aa" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg> Priority Support</li>
+              </ul>
+              <button class="pricing-btn current">Current Plan</button>
+            </div>
+
+            <!-- Pro Tier (Highlighted) -->
+            <div class="pricing-card popular">
+              <div class="popular-badge">Most Popular</div>
+              <div class="tier-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+                  </path>
+                </svg>
+              </div>
+              <h4>Pro</h4>
+              <div class="price">
+                <span class="currency">₹</span><span class="amount">299</span><span class="period">/mo</span>
+              </div>
+              <ul class="features-list">
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> 100 GB Storage</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> All Cloud Providers</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> High Speed Sync</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> Priority Support</li>
+              </ul>
+              <div class="payment-options" style="display: flex; gap: 8px; width: 100%; margin-top: auto;">
+                <button class="pricing-btn upgrade upgrade-btn" data-plan="Pro"
+                  style="flex: 1; padding: 10px 0;">Stripe</button>
+                <button class="pricing-btn outline razorpay-btn" data-plan="Pro"
+                  style="flex: 1; padding: 10px 0;">Razorpay</button>
+              </div>
+            </div>
+
+            <!-- Enterprise Tier -->
+            <div class="pricing-card">
+              <div class="tier-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </div>
+              <h4>Enterprise</h4>
+              <div class="price">
+                <span class="currency">₹</span><span class="amount">999</span><span class="period">/mo</span>
+              </div>
+              <ul class="features-list">
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> 1 TB+ Storage</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> All Cloud Providers</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> Unlimited Speed</li>
+                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg> 24/7 Dedicated Support</li>
+              </ul>
+              <div class="payment-options" style="display: flex; gap: 8px; width: 100%; margin-top: auto;">
+                <button class="pricing-btn upgrade upgrade-btn" data-plan="Enterprise"
+                  style="flex: 1; padding: 10px 0;">Stripe</button>
+                <button class="pricing-btn outline razorpay-btn" data-plan="Enterprise"
+                  style="flex: 1; padding: 10px 0;">Razorpay</button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

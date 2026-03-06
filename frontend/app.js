@@ -23,6 +23,31 @@ const state = {
 
 let charts = {};
 
+// ── Toast Notifications ──────────────────────────────────
+function showToast(message, type = 'info', duration = 4000) {
+  // Remove existing toasts
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+
+  const icons = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span style="font-size:16px">${icons[type] || icons.info}</span><span>${message}</span>`;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.transition = 'all 0.4s ease';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(12px)';
+    setTimeout(() => toast.remove(), 400);
+  }, duration);
+}
+
+
 // Theme toggle functionality
 const initTheme = () => {
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -574,7 +599,7 @@ const renderFiles = () => {
   }
 };
 
-const loadFiles = async () => {
+let loadFiles = async () => {
   const params = new URLSearchParams();
   if (searchInput && searchInput.value) {
     params.set("search", searchInput.value);
@@ -665,6 +690,13 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
+loginForm.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    loginForm.dispatchEvent(new Event("submit"));
+  }
+});
+
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (registerMessage) registerMessage.textContent = "";
@@ -678,6 +710,13 @@ registerForm.addEventListener("submit", async (event) => {
     await register(name, email, password);
   } catch (err) {
     if (registerMessage) registerMessage.textContent = err.message || "Registration failed";
+  }
+});
+
+registerForm.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    registerForm.dispatchEvent(new Event("submit"));
   }
 });
 
@@ -1073,5 +1112,105 @@ if (typeof loadFiles === 'function') {
     return result;
   };
 }
+
+// Stripe Payment Integration
+document.querySelectorAll('.upgrade-btn').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const plan = e.target.getAttribute('data-plan');
+    const originalText = e.target.innerText;
+
+    try {
+      e.target.innerText = 'Redirecting...';
+      e.target.disabled = true;
+
+      const response = await fetch('http://localhost:4000/api/payments/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ plan })
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Failed to start checkout process.');
+        e.target.innerText = originalText;
+        e.target.disabled = false;
+      }
+    } catch (error) {
+      console.error('Error starting checkout:', error);
+      alert('Error connecting to payment server.');
+      e.target.innerText = originalText;
+      e.target.disabled = false;
+    }
+  });
+});
+
+// Razorpay Payment Integration
+document.querySelectorAll('.razorpay-btn').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const plan = e.target.getAttribute('data-plan');
+    const originalText = e.target.innerText;
+
+    try {
+      e.target.innerText = 'Loading...';
+      e.target.disabled = true;
+
+      const response = await fetch('http://localhost:4000/api/payments/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        alert('Razorpay Checkout Error: ' + data.error);
+        e.target.innerText = originalText;
+        e.target.disabled = false;
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: "INR",
+        name: "CloudFusion",
+        description: `${plan} Storage Plan Upgrade`,
+        order_id: data.orderId,
+        handler: function (response) {
+          alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+          // Usually, you would verify this signature on the backend before upgrading the user
+        },
+        prefill: {
+          name: "CloudFusion User",
+          email: "user@example.com",
+          contact: "9999999999"
+        },
+        theme: {
+          color: "#6366f1" // Matches var(--accent)
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        alert("Payment Failed: " + response.error.description);
+      });
+
+      rzp.open();
+
+      e.target.innerText = originalText;
+      e.target.disabled = false;
+
+    } catch (error) {
+      console.error('Error starting Razorpay checkout:', error);
+      alert('Error connecting to Razorpay server.');
+      e.target.innerText = originalText;
+      e.target.disabled = false;
+    }
+  });
+});
 
 console.log('🎨 Enhanced animations loaded!');

@@ -1,0 +1,472 @@
+/* ============================================================
+   CLOUDFUSION – 10X PREMIUM UI UPGRADES (LIGHT THEME)
+   Builds on top of the existing design system
+   ============================================================ */
+
+/* Google Font: Outfit — premium, modern typography */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+/* ── Base ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── ANIMATED MESH BACKGROUND ───────────────────────────────── */
+body {
+    background: #f3f4fb !important;
+    background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 10%, rgba(14, 165, 233, 0.05) 0%, transparent 40%) !important;
+}
+
+/* ── SIDEBAR GLOW UPGRADE ───────────────────────────────────── */
+.sidebar {
+    background: linear-gradient(180deg, #ffffff 0%, #fafafe 100%) !important;
+    border-right: 1px solid rgba(99, 102, 241, 0.1) !important;
+    box-shadow: 4px 0 32px rgba(99, 102, 241, 0.07) !important;
+    position: relative;
+    z-index: 10;
+}
+
+.brand h1 {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.04em !important;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+.brand p {
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+    background: none !important;
+    text-transform: uppercase;
+}
+
+/* Brand mark - clean icon */
+.brand-mark {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    border-radius: 14px !important;
+    width: 42px !important;
+    height: 42px !important;
+    animation: none !important;
+    background-size: unset !important;
+    transform: none !important;
+}
+
+/* Sparkle removed */
+.brand-mark::after {
+    display: none !important;
+}
+
+/* Nav buttons */
+.nav-btn {
+    border-radius: 12px !important;
+    padding: 11px 14px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    letter-spacing: -0.01em;
+    gap: 10px;
+}
+
+.nav-btn:hover {
+    background: rgba(99, 102, 241, 0.07) !important;
+    color: #6366f1 !important;
+    transform: none !important;
+}
+
+.nav-btn.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.08)) !important;
+    color: #4f46e5 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15), inset 0 0 0 1px rgba(99, 102, 241, 0.18) !important;
+    transform: none !important;
+}
+
+.nav-btn.active svg {
+    stroke: #4f46e5;
+}
+
+.nav-btn::before {
+    display: none !important;
+}
+
+/* Security card in sidebar */
+.side-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.06)) !important;
+    border: 1px solid rgba(99, 102, 241, 0.14) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+}
+
+.side-card h3 {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #a78bfa !important;
+    -webkit-text-fill-color: #a78bfa !important;
+    background: none !important;
+}
+
+/* ── STAT CARDS – PREMIUM ────────────────────────────────────── */
+.stat-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 16px rgba(99, 102, 241, 0.06) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: none;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow:
+        0 8px 30px rgba(99, 102, 241, 0.14),
+        0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.stat-card:hover::after {
+    opacity: 1;
+}
+
+/* ── STAT ICONS – RICHER GRADIENTS ──────────────────────────── */
+.stat-icon {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.stat-card:nth-child(1) .stat-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35) !important;
+}
+
+.stat-card:nth-child(2) .stat-icon {
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%) !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35) !important;
+}
+
+.stat-card:nth-child(3) .stat-icon {
+    background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%) !important;
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.35) !important;
+}
+
+.stat-card:nth-child(4) .stat-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%) !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Stat label styling */
+.stat-card .stat-label,
+.stat-card .mini,
+.stat-card p {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.07em !important;
+    text-transform: uppercase !important;
+}
+
+/* Stat value styling */
+.stat-card h3,
+.stat-card .stat-value {
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    color: #0f172a !important;
+    line-height: 1.1 !important;
+}
+
+/* ── FILE CARDS ──────────────────────────────────────────────── */
+.file-card {
+    border-radius: 18px !important;
+    background: #fff !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.file-card:hover {
+    transform: translateY(-5px) scale(1.01) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+    box-shadow:
+        0 16px 40px rgba(99, 102, 241, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── PANELS ──────────────────────────────────────────────────── */
+.panel {
+    background: #ffffff !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 20px !important;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 4px 16px rgba(99, 102, 241, 0.05) !important;
+}
+
+.panel h3 {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.panel h3::after {
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #a855f7) !important;
+    border-radius: 99px;
+}
+
+/* ── INPUT GLOW ──────────────────────────────────────────────── */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* ── PRICING CARDS ───────────────────────────────────────────── */
+.pricing-card {
+    border-radius: 24px !important;
+    background: #fff !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px) !important;
+    box-shadow: 0 24px 60px rgba(99, 102, 241, 0.16) !important;
+}
+
+.pricing-card.popular {
+    background: #ffffff !important;
+    border: 2px solid #6366f1 !important;
+    box-shadow: 0 16px 40px rgba(99, 102, 241, 0.15) !important;
+    transform: scale(1.04) !important;
+    position: relative;
+}
+
+.pricing-card.popular::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    z-index: -1;
+    opacity: 0.15;
+    transition: opacity 0.3s;
+}
+
+.pricing-card.popular:hover {
+    transform: scale(1.04) translateY(-10px) !important;
+    box-shadow: 0 24px 60px rgba(99, 102, 241, 0.25) !important;
+}
+
+.pricing-card.popular:hover::before {
+    opacity: 0.3;
+}
+
+.pricing-btn.upgrade {
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #6366f1, #a855f7) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+    transition: all 0.25s ease !important;
+}
+
+.pricing-btn.upgrade:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 36px rgba(99, 102, 241, 0.48) !important;
+}
+
+.pricing-btn.outline {
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #6366f1 !important;
+    transition: all 0.25s ease !important;
+}
+
+.pricing-btn.outline:hover {
+    background: rgba(99, 102, 241, 0.07) !important;
+    border-color: #6366f1 !important;
+}
+
+/* ── UPLOAD ZONE ─────────────────────────────────────────────── */
+.upload-zone,
+.upload-dropzone {
+    border-radius: 24px !important;
+    border: 2px dashed rgba(99, 102, 241, 0.28) !important;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(168, 85, 247, 0.02)) !important;
+    transition: all 0.3s ease !important;
+}
+
+.upload-zone:hover,
+.upload-dropzone:hover {
+    border-color: rgba(99, 102, 241, 0.55) !important;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(168, 85, 247, 0.05)) !important;
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.1) inset !important;
+}
+
+/* ── TOAST NOTIFICATIONS ─────────────────────────────────────── */
+.toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    padding: 14px 20px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 380px;
+    pointer-events: none;
+}
+
+.toast.success {
+    background: #f0fdf4;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #065f46;
+    border-left: 4px solid #10b981;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15);
+}
+
+.toast.error {
+    background: #fef2f2;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #7f1d1d;
+    border-left: 4px solid #ef4444;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
+}
+
+.toast.info {
+    background: #f0f4ff;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #312e81;
+    border-left: 4px solid #6366f1;
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── SCORE BAR ───────────────────────────────────────────────── */
+.score-bar span {
+    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899) !important;
+    background-size: 200% 100% !important;
+    animation: gradientShift 3s ease infinite !important;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ── SMOOTH SCROLLBAR ────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6366f1, #a855f7);
+    border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #4f46e5, #9333ea);
+}
+
+/* ── HEADER BAR ──────────────────────────────────────────────── */
+header {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+/* ── BADGE REFINEMENT ────────────────────────────────────────── */
+.badge {
+    border-radius: 6px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    padding: 3px 7px !important;
+}
+
+/* ── DARK THEME OVERRIDES ────────────────────────────────────── */
+body.dark-theme .stat-card {
+    background: #13131f !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-theme .file-card {
+    background: #13131f !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+body.dark-theme .panel {
+    background: #13131f !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+body.dark-theme header {
+    background: rgba(9, 9, 11, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-theme .pricing-card {
+    background: #13131f !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
