@@ -135,6 +135,11 @@ const setView = (view) => {
     document.querySelectorAll(".nav-btn").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.view === view);
     });
+
+    // Trigger security load if needed
+    if (view === "security" && typeof loadSecurityData === "function") {
+      loadSecurityData();
+    }
   }
 };
 

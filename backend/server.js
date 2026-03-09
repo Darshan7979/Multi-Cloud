@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const fileRoutes = require("./routes/files");
 const analyticsRoutes = require("./routes/analytics");
 const paymentRoutes = require("./routes/payments");
+const securityRoutes = require("./routes/security");
 
 const { errorHandler } = require("./middleware/errorHandler");
 
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/security", securityRoutes);
 
 app.use(errorHandler);
 

@@ -9,6 +9,8 @@ const UserSchema = new mongoose.Schema({
   totalRequests: { type: Number, default: 0 },
   lastLoginAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String },
 });
 
 module.exports = mongoose.model("User", UserSchema);
