@@ -470,3 +470,424 @@ body.dark-theme .pricing-card {
     background: #13131f !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ================================================================
+   ✨ MICRO-ANIMATIONS & POLISH UPGRADES
+   ================================================================ */
+
+/* ── PAGE / VIEW TRANSITIONS ─────────────────────────────────── */
+.view-section,
+#dashboard-view,
+#upload-view,
+#files-view,
+#analytics-view,
+#security-view,
+#services-view,
+#pricing-view {
+    animation: viewFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes viewFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── STAGGERED CARD ENTRANCE ─────────────────────────────────── */
+.stats-grid .stat-card {
+    animation: cardSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stats-grid .stat-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.stats-grid .stat-card:nth-child(2) {
+    animation-delay: 0.12s;
+}
+
+.stats-grid .stat-card:nth-child(3) {
+    animation-delay: 0.19s;
+}
+
+.stats-grid .stat-card:nth-child(4) {
+    animation-delay: 0.26s;
+}
+
+@keyframes cardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── BUTTON MICRO-INTERACTIONS ───────────────────────────────── */
+button,
+.primary,
+.ghost,
+.icon-btn,
+.pricing-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+button:active,
+.primary:active,
+.pricing-btn:active {
+    transform: scale(0.96) !important;
+}
+
+.primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.primary:hover::after {
+    opacity: 1;
+}
+
+/* ── ICON BUTTON GLOW ON HOVER ───────────────────────────────── */
+.icon-btn:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+    color: #6366f1 !important;
+}
+
+/* ── LOGOUT BUTTON POLISH ────────────────────────────────────── */
+.ghost {
+    border-radius: 10px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.01em;
+}
+
+.ghost:hover {
+    background: rgba(239, 68, 68, 0.06) !important;
+    color: #ef4444 !important;
+}
+
+/* ── LOADING SKELETON SHIMMER ────────────────────────────────── */
+@keyframes shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+.stat-value[data-loading="true"],
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f5 25%, #e8e8f0 50%, #f0f0f5 75%) !important;
+    background-size: 800px 100% !important;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 8px;
+    color: transparent !important;
+    min-width: 60px;
+    min-height: 28px;
+}
+
+/* ── ANIMATED GRADIENT BAR ───────────────────────────────────── */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.storage-bar .storage-fill,
+#storage-fill {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1) !important;
+    background-size: 200% 100% !important;
+    animation: gradientShift 3s ease infinite !important;
+    border-radius: 99px !important;
+}
+
+/* ── FILE CARD STAGGER ───────────────────────────────────────── */
+.file-card {
+    animation: cardSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.files-grid .file-card:nth-child(1) {
+    animation-delay: 0.02s;
+}
+
+.files-grid .file-card:nth-child(2) {
+    animation-delay: 0.06s;
+}
+
+.files-grid .file-card:nth-child(3) {
+    animation-delay: 0.10s;
+}
+
+.files-grid .file-card:nth-child(4) {
+    animation-delay: 0.14s;
+}
+
+.files-grid .file-card:nth-child(5) {
+    animation-delay: 0.18s;
+}
+
+.files-grid .file-card:nth-child(6) {
+    animation-delay: 0.22s;
+}
+
+.files-grid .file-card:nth-child(7) {
+    animation-delay: 0.26s;
+}
+
+.files-grid .file-card:nth-child(8) {
+    animation-delay: 0.30s;
+}
+
+/* ── RECENT FILES LIST HOVER ─────────────────────────────────── */
+.recent-item {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    transition: all 0.2s ease !important;
+    cursor: default;
+}
+
+.recent-item:hover {
+    background: rgba(99, 102, 241, 0.05) !important;
+    transform: translateX(4px);
+}
+
+/* ── AUTH FORM ENTRANCE ──────────────────────────────────────── */
+.auth-form {
+    animation: authSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes authSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── INPUT FIELD TRANSITIONS ─────────────────────────────────── */
+input,
+select,
+textarea {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+input:hover,
+select:hover {
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+/* ── FORGOT PASSWORD LINK ────────────────────────────────────── */
+.forgot-link {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #6366f1 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    position: relative;
+}
+
+.forgot-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: #6366f1;
+    transition: width 0.3s ease;
+}
+
+.forgot-link:hover::after {
+    width: 100%;
+}
+
+.forgot-link:hover {
+    color: #4f46e5 !important;
+}
+
+/* ── CHECKBOX CUSTOM STYLE ───────────────────────────────────── */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0 !important;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid #cbd5e1;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-color: #6366f1;
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* ── DISTRIBUTION BARS ANIMATION ─────────────────────────────── */
+.dist-fill {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 99px !important;
+}
+
+/* ── NOTIFICATION DOT PULSE ──────────────────────────────────── */
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 0.6;
+    }
+}
+
+/* ── ANALYTICS CHART CONTAINERS ──────────────────────────────── */
+.chart-container {
+    background: #ffffff !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(99, 102, 241, 0.05) !important;
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* ── UPLOAD DRAG ACTIVE STATE ────────────────────────────────── */
+.upload-zone.drag-over,
+.upload-dropzone.drag-over {
+    border-color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.08) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 0 40px rgba(99, 102, 241, 0.1) inset !important;
+    transform: scale(1.01);
+}
+
+/* ── SIDEBAR BRAND LOGO HOVER ────────────────────────────────── */
+.brand {
+    transition: transform 0.2s ease !important;
+    cursor: pointer;
+}
+
+.brand:hover {
+    transform: scale(1.02);
+}
+
+.brand:hover .brand-mark {
+    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ── SMOOTH SELECTIONS ───────────────────────────────────────── */
+::selection {
+    background: rgba(99, 102, 241, 0.18);
+    color: #1e1b4b;
+}
+
+/* ── FOCUS VISIBLE OUTLINE ───────────────────────────────────── */
+:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ── DARK THEME POLISH ADDITIONS ─────────────────────────────── */
+body.dark-theme .recent-item:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+
+body.dark-theme .ghost:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+}
+
+body.dark-theme .icon-btn:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+}
+
+body.dark-theme ::selection {
+    background: rgba(99, 102, 241, 0.3);
+    color: #e8e8ff;
+}
+
+body.dark-theme .chart-container {
+    background: #13131f !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+body.dark-theme .checkbox-label {
+    color: #94a3b8;
+}
+
+body.dark-theme .checkbox-label input[type="checkbox"] {
+    border-color: #475569;
+}
