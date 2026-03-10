@@ -3,55 +3,54 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CloudFusion - Multi-Cloud Storage</title>
-  <link rel="icon" type="image/png" href="logo.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="stylish-additions.css" />
-  <link rel="stylesheet" href="premium-ui.css" />
-  <link rel="stylesheet" href="security-styles.css" />
-  <link rel="stylesheet" href="logout-styles.css" />
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Razorpay -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script defer src="app.js"></script>
-  <script defer src="security.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CloudFusion - Multi-Cloud Storage</title>
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stylish-additions.css" />
+    <link rel="stylesheet" href="premium-ui.css" />
+    <link rel="stylesheet" href="security-styles.css" />
+    <link rel="stylesheet" href="logout-styles.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Razorpay -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script defer src="app.js"></script>
+    <script defer src="security.js"></script>
 </head>
 
 <body>
-  <!-- Decorative background elements for Glassmorphism -->
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-  <div class="bg-orb orb-3"></div>
+    <!-- Decorative background elements for Glassmorphism -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
 
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark">
-          <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
-        </div>
-        <div>
-          <h1>CloudFusion</h1>
-          <p>Multi-Cloud Storage</p>
-        </div>
-      </div>
-      <nav class="nav">
-        <button class="nav-btn active" data-view="dashboard">
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">
+                    <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
+                </div>
+                <div>
+                    <h1>CloudFusion</h1>
+                    <p>Multi-Cloud Storage</p>
+                </div>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-view="dashboard">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
           <span>Dashboard</span>
         </button>
-        <button class="nav-btn" data-view="upload">
+                <button class="nav-btn" data-view="upload">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="17 8 12 3 7 8"></polyline>
@@ -59,14 +58,14 @@
           </svg>
           <span>Upload Files</span>
         </button>
-        <button class="nav-btn" data-view="files">
+                <button class="nav-btn" data-view="files">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
             <polyline points="13 2 13 9 20 9"></polyline>
           </svg>
           <span>My Files</span>
         </button>
-        <button class="nav-btn" data-view="analytics">
+                <button class="nav-btn" data-view="analytics">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="20" x2="12" y2="10"></line>
             <line x1="18" y1="20" x2="18" y2="4"></line>
@@ -74,13 +73,13 @@
           </svg>
           <span>Analytics</span>
         </button>
-        <button class="nav-btn" data-view="security">
+                <button class="nav-btn" data-view="security">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
           <span>Security</span>
         </button>
-        <button class="nav-btn" data-view="services">
+                <button class="nav-btn" data-view="services">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="1"></circle>
             <circle cx="19" cy="12" r="1"></circle>
@@ -88,7 +87,7 @@
           </svg>
           <span>Cloud Services</span>
         </button>
-        <button class="nav-btn" data-view="settings">
+                <button class="nav-btn" data-view="settings">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path
@@ -97,16 +96,15 @@
           </svg>
           <span>Settings</span>
         </button>
-      </nav>
-      <div class="side-card">
-        <h3>Security Score</h3>
-        <p class="muted" id="security-score">--</p>
-        <div class="score-bar">
-          <span id="security-bar"></span>
-        </div>
-      </div>
-      <button id="sidebar-logout-btn" class="btn-logout-header"
-        style="margin-top: auto; justify-content: flex-start; padding: 13px 18px; width: 100%;">
+            </nav>
+            <div class="side-card">
+                <h3>Security Score</h3>
+                <p class="muted" id="security-score">--</p>
+                <div class="score-bar">
+                    <span id="security-bar"></span>
+                </div>
+            </div>
+            <button id="sidebar-logout-btn" class="btn-logout-header" style="margin-top: auto; justify-content: flex-start; padding: 13px 18px; width: 100%;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
           <polyline points="16 17 21 12 16 7"></polyline>
@@ -114,29 +112,29 @@
         </svg>
         <span>Logout</span>
       </button>
-    </aside>
+        </aside>
 
-    <main class="main">
-      <section id="auth-view" class="auth-view hidden">
-        <div class="auth-card">
-          <div class="auth-header">
-            <div class="auth-logo">
-              <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
-            </div>
-            <h2>Welcome to CloudFusion</h2>
-            <p class="auth-subtitle">Unified cloud storage, infinite possibilities</p>
-          </div>
+        <main class="main">
+            <section id="auth-view" class="auth-view hidden">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <img src="logo.png" alt="CloudFusion Logo" class="logo-img" />
+                        </div>
+                        <h2>Welcome to CloudFusion</h2>
+                        <p class="auth-subtitle">Unified cloud storage, infinite possibilities</p>
+                    </div>
 
-          <div class="auth-tabs">
-            <button class="tab active" data-tab="login">Login</button>
-            <button class="tab" data-tab="register">Register</button>
-          </div>
+                    <div class="auth-tabs">
+                        <button class="tab active" data-tab="login">Login</button>
+                        <button class="tab" data-tab="register">Register</button>
+                    </div>
 
-          <form id="login-form" class="auth-form">
-            <label>Email
+                    <form id="login-form" class="auth-form">
+                        <label>Email
               <input type="email" name="email" placeholder="you@email.com" required />
             </label>
-            <label>Password
+                        <label>Password
               <div class="password-input">
                 <input type="password" name="password" id="login-password" placeholder="Enter your password" required />
                 <button type="button" class="password-toggle" data-target="login-password">
@@ -148,25 +146,25 @@
                 </button>
               </div>
             </label>
-            <div class="form-options">
-              <label class="checkbox-label">
+                        <div class="form-options">
+                            <label class="checkbox-label">
                 <input type="checkbox" name="remember" />
                 <span>Remember me</span>
               </label>
-              <a href="#" class="forgot-link">Forgot password?</a>
-            </div>
-            <button type="submit" class="primary">Login</button>
-            <p class="form-message" id="login-message"></p>
-          </form>
+                            <a href="#" class="forgot-link">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="primary">Login</button>
+                        <p class="form-message" id="login-message"></p>
+                    </form>
 
-          <form id="register-form" class="auth-form hidden">
-            <label>Name
+                    <form id="register-form" class="auth-form hidden">
+                        <label>Name
               <input type="text" name="name" placeholder="Your full name" required />
             </label>
-            <label>Email
+                        <label>Email
               <input type="email" name="email" placeholder="you@email.com" required />
             </label>
-            <label>Password
+                        <label>Password
               <div class="password-input">
                 <input type="password" name="password" id="register-password" placeholder="Create a strong password"
                   required />
@@ -179,45 +177,45 @@
                 </button>
               </div>
             </label>
-            <div class="password-hint">Use at least 8 characters with letters and numbers</div>
-            <button type="submit" class="primary">Register</button>
-            <p class="form-message" id="register-message"></p>
-          </form>
+                        <div class="password-hint">Use at least 8 characters with letters and numbers</div>
+                        <button type="submit" class="primary">Register</button>
+                        <p class="form-message" id="register-message"></p>
+                    </form>
 
 
 
-          <div class="auth-features">
-            <div class="feature-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <div class="auth-features">
+                        <div class="feature-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <span>Secure & Encrypted</span>
-            </div>
-            <div class="feature-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <span>Secure & Encrypted</span>
+                        </div>
+                        <div class="feature-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
-              <span>Multi-Cloud Storage</span>
-            </div>
-            <div class="feature-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <span>Multi-Cloud Storage</span>
+                        </div>
+                        <div class="feature-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
-              <span>Real-time Analytics</span>
-            </div>
-          </div>
-        </div>
-      </section>
+                            <span>Real-time Analytics</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      <section id="dashboard-view" class="dashboard-view hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Welcome back, <span id="user-name">User</span>!</h2>
-            <p class="muted">Here's your cloud storage overview</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle" class="icon-btn" title="Toggle theme">
+            <section id="dashboard-view" class="dashboard-view hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Welcome back, <span id="user-name">User</span>!</h2>
+                        <p class="muted">Here's your cloud storage overview</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -235,44 +233,41 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
+                        <!-- Logout handled by sidebar -->
+                    </div>
+                </header>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 7H8a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
                 <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
                 <line x1="12" y1="12" x2="12" y2="16" />
                 <line x1="10" y1="14" x2="14" y2="14" />
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Total Files</div>
-              <div class="stat-value" id="file-count">0</div>
-            </div>
-          </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Files</div>
+                            <div class="stat-value" id="file-count">0</div>
+                        </div>
+                    </div>
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Storage Used</div>
-              <div class="stat-value" id="storage-used">0 MB</div>
-            </div>
-          </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Storage Used</div>
+                            <div class="stat-value" id="storage-used">0 MB</div>
+                        </div>
+                    </div>
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="5" r="3" />
                 <circle cx="19" cy="14" r="3" />
                 <circle cx="5" cy="14" r="3" />
@@ -280,70 +275,69 @@
                 <line x1="12" y1="8" x2="5" y2="11" />
                 <line x1="5" y1="14" x2="19" y2="14" />
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Cloud Services</div>
-              <div class="stat-value" id="active-services">--</div>
-            </div>
-          </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Cloud Services</div>
+                            <div class="stat-value" id="active-services">--</div>
+                        </div>
+                    </div>
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #f97316 0%, #ff6b6b 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f97316 0%, #ff6b6b 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <polyline points="9 12 11 14 15 10" />
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Security Score</div>
-              <div class="stat-value" id="security-score">--</div>
-            </div>
-          </div>
-        </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Security Score</div>
+                            <div class="stat-value" id="security-score">--</div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="panel storage-panel full-width-panel" style="margin-top: 20px;">
-          <h3>Storage Usage</h3>
-          <div class="storage-info">
-            <div class="storage-used-text"><span id="storage-used-mb">--</span> used</div>
-            <div class="storage-bar">
-              <div class="storage-fill" id="storage-fill"></div>
-            </div>
-            <div class="storage-percent"><span id="storage-percent">--</span>%</div>
-          </div>
-        </div>
+                <div class="panel storage-panel full-width-panel" style="margin-top: 20px;">
+                    <h3>Storage Usage</h3>
+                    <div class="storage-info">
+                        <div class="storage-used-text"><span id="storage-used-mb">--</span> used</div>
+                        <div class="storage-bar">
+                            <div class="storage-fill" id="storage-fill"></div>
+                        </div>
+                        <div class="storage-percent"><span id="storage-percent">--</span>%</div>
+                    </div>
+                </div>
 
-        <div class="dashboard-sections" style="margin-top: 20px;">
-          <div class="dashboard-left">
-            <div class="panel recent-panel">
-              <h3>Recent Files</h3>
-              <div id="recent-files" class="recent-list">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
-          </div>
+                <div class="dashboard-sections" style="margin-top: 20px;">
+                    <div class="dashboard-left">
+                        <div class="panel recent-panel">
+                            <h3>Recent Files</h3>
+                            <div id="recent-files" class="recent-list">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
 
-          <div class="dashboard-right">
-            <div class="panel distribution-panel">
-              <h3>Cloud Distribution</h3>
-              <div id="cloud-distribution" class="distribution-list">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
-          </div>
-        </div>
+                    <div class="dashboard-right">
+                        <div class="panel distribution-panel">
+                            <h3>Cloud Distribution</h3>
+                            <div id="cloud-distribution" class="distribution-list">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-      </section>
+            </section>
 
-      <!-- Upload View -->
-      <section id="upload-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Upload Files</h2>
-            <p class="muted">Upload files to multiple cloud storage providers</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-upload" class="icon-btn" title="Toggle theme">
+            <!-- Upload View -->
+            <section id="upload-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Upload Files</h2>
+                        <p class="muted">Upload files to multiple cloud storage providers</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-upload" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -361,14 +355,14 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-          </div>
-        </header>
+                    </div>
+                </header>
 
-        <form id="upload-form-upload" class="upload-sections">
+                <form id="upload-form-upload" class="upload-sections">
 
-          <!-- Left: Big Drop Zone -->
-          <div class="upload-main">
-            <label class="upload-dropzone" for="file-upload">
+                    <!-- Left: Big Drop Zone -->
+                    <div class="upload-main">
+                        <label class="upload-dropzone" for="file-upload">
               <input type="file" id="file-upload" name="file" required style="display: none;" />
               <div class="dropzone-content">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -385,75 +379,70 @@
                   style="margin-top:20px; color: var(--ink); font-weight: 500; font-size: 14px;"></div>
               </div>
             </label>
-            <button type="submit" class="btn btn-upload-submit">Upload</button>
-            <p class="form-message" id="upload-message-upload" style="margin-top: 10px;"></p>
-          </div>
+                        <button type="submit" class="btn btn-upload-submit">Upload</button>
+                        <p class="form-message" id="upload-message-upload" style="margin-top: 10px;"></p>
+                    </div>
 
-          <!-- Right: Settings & Security Info -->
-          <div class="upload-side">
-            <div class="panel upload-settings">
-              <h3 class="settings-title">Upload Settings</h3>
+                    <!-- Right: Settings & Security Info -->
+                    <div class="upload-side">
+                        <div class="panel upload-settings">
+                            <h3 class="settings-title">Upload Settings</h3>
 
-              <div class="form-group">
-                <label for="upload-cloud" class="font-bold" style="display: block; margin-bottom: 8px;">Select Cloud
+                            <div class="form-group">
+                                <label for="upload-cloud" class="font-bold" style="display: block; margin-bottom: 8px;">Select Cloud
                   Service</label>
-                <select id="upload-cloud" name="cloudService" required class="form-control rounded-pill"
-                  style="width: 100%; border-radius: 12px; padding: 10px 14px;">
+                                <select id="upload-cloud" name="cloudService" required class="form-control rounded-pill" style="width: 100%; border-radius: 12px; padding: 10px 14px;">
                   <option value="firebase">Google Firebase</option>
                   <option value="cloudinary">Cloudinary</option>
                   <option value="aws">AWS S3</option>
                   <option value="supabase">Supabase Storage</option>
                 </select>
-              </div>
+                            </div>
 
-              <div class="form-group" style="margin-top: 16px;">
-                <label class="font-bold" style="display: block; margin-bottom: 8px;">File Privacy</label>
-                <div class="select-wrapper">
-                  <select name="privacy" required class="form-control rounded-pill"
-                    style="width: 100%; border-radius: 12px; padding: 10px 14px;">
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label class="font-bold" style="display: block; margin-bottom: 8px;">File Privacy</label>
+                                <div class="select-wrapper">
+                                    <select name="privacy" required class="form-control rounded-pill" style="width: 100%; border-radius: 12px; padding: 10px 14px;">
                     <option value="private">Private</option>
                     <option value="public">Public</option>
                   </select>
-                </div>
-              </div>
+                                </div>
+                            </div>
 
-              <div class="checkbox-container" style="margin-top: 20px;">
-                <label class="custom-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <div class="checkbox-container" style="margin-top: 20px;">
+                                <label class="custom-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                   <input type="checkbox" name="encrypt" checked disabled
                     style="width: 18px; height: 18px; cursor: not-allowed; accent-color: #6366f1;" />
                   <span class="checkbox-text" style="line-height: 1;">Auto-encrypt files (AES-256)</span>
                 </label>
-              </div>
-            </div>
+                            </div>
+                        </div>
 
-            <div class="panel upload-security-info mt-4"
-              style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border-color: rgba(102, 126, 234, 0.2);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                style="color: #667eea; margin-bottom: 12px;">
+                        <div class="panel upload-security-info mt-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border-color: rgba(102, 126, 234, 0.2);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #667eea; margin-bottom: 12px;">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink);">Security Features</h4>
-              <ul
-                style="margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
-                <li>✓ End-to-end encryption</li>
-                <li>✓ Secure file transfer</li>
-                <li>✓ Access control</li>
-                <li>✓ Activity logging</li>
-              </ul>
-            </div>
-          </div>
-        </form>
-      </section>
+                            <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--ink);">Security Features</h4>
+                            <ul style="margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px;">
+                                <li>✓ End-to-end encryption</li>
+                                <li>✓ Secure file transfer</li>
+                                <li>✓ Access control</li>
+                                <li>✓ Activity logging</li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </section>
 
-      <!-- Files View -->
-      <section id="files-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>My Files</h2>
-            <p class="muted">Manage all your uploaded files</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-files" class="icon-btn" title="Toggle theme">
+            <!-- Files View -->
+            <section id="files-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>My Files</h2>
+                        <p class="muted">Manage all your uploaded files</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-files" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -471,39 +460,39 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
-        <div class="files-section">
-          <div class="section-head">
-            <h3>All Files</h3>
-            <div class="filters">
-              <input type="text" id="search-input-files" placeholder="Search files" />
-              <select id="cloud-filter-files">
+                        <!-- Logout handled by sidebar -->
+                    </div>
+                </header>
+                <div class="files-section">
+                    <div class="section-head">
+                        <h3>All Files</h3>
+                        <div class="filters">
+                            <input type="text" id="search-input-files" placeholder="Search files" />
+                            <select id="cloud-filter-files">
                 <option value="">All Clouds</option>
                 <option value="firebase">Firebase</option>
                 <option value="cloudinary">Cloudinary</option>
                 <option value="aws">Amazon S3</option>
                 <option value="supabase">Supabase</option>
               </select>
-              <button id="refresh-btn-files" class="ghost">↻ Refresh</button>
-            </div>
-          </div>
-          <div class="files-grid" id="files-list-files">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </section>
+                            <button id="refresh-btn-files" class="ghost">↻ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="files-grid" id="files-list-files">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
 
-      <!-- Analytics View -->
-      <section id="analytics-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Analytics</h2>
-            <p class="muted">Monitor your storage and usage statistics</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-analytics" class="icon-btn" title="Toggle theme">
+            <!-- Analytics View -->
+            <section id="analytics-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Analytics</h2>
+                        <p class="muted">Monitor your storage and usage statistics</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-analytics" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -521,73 +510,73 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                        <!-- Logout handled by sidebar -->
+                    </div>
+                </header>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Total Bandwidth</div>
-              <div class="stat-value" id="analytics-bandwidth">0 GB</div>
-            </div>
-          </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Bandwidth</div>
+                            <div class="stat-value" id="analytics-bandwidth">0 GB</div>
+                        </div>
+                    </div>
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
                 <path d="M21 2v6h-6"></path>
                 <path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path>
               </svg>
-            </div>
-            <div class="stat-content">
-              <div class="stat-label">Total Requests</div>
-              <div class="stat-value" id="analytics-requests">0</div>
-            </div>
-          </div>
-        </div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Requests</div>
+                            <div class="stat-value" id="analytics-requests">0</div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="panel full-width-panel" style="margin-top: 20px;">
-          <h3>Storage Usage Over Time</h3>
-          <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
-            <canvas id="storageTimelineChart"></canvas>
-          </div>
-        </div>
+                <div class="panel full-width-panel" style="margin-top: 20px;">
+                    <h3>Storage Usage Over Time</h3>
+                    <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="storageTimelineChart"></canvas>
+                    </div>
+                </div>
 
-        <div class="dashboard-sections" style="margin-top: 20px;">
-          <div class="dashboard-left">
-            <div class="panel">
-              <h3>File Type Distribution</h3>
-              <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                <canvas id="fileTypeChart"></canvas>
-              </div>
-            </div>
-          </div>
+                <div class="dashboard-sections" style="margin-top: 20px;">
+                    <div class="dashboard-left">
+                        <div class="panel">
+                            <h3>File Type Distribution</h3>
+                            <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                                <canvas id="fileTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
-          <div class="dashboard-right">
-            <div class="panel">
-              <h3>Cloud Provider Distribution</h3>
-              <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                <canvas id="cloudProviderChart"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                    <div class="dashboard-right">
+                        <div class="panel">
+                            <h3>Cloud Provider Distribution</h3>
+                            <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                                <canvas id="cloudProviderChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Security View -->
-      <section id="security-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Security</h2>
-            <p class="muted">Manage your security settings and permissions</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-security" class="icon-btn" title="Toggle theme">
+            <!-- Security View -->
+            <section id="security-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Security</h2>
+                        <p class="muted">Manage your security settings and permissions</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-security" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -605,23 +594,23 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
-        <div class="security-grid">
-          <!-- Password Management -->
-          <div class="panel security-panel">
-            <div class="security-header-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Logout handled by sidebar -->
+                    </div>
+                </header>
+                <div class="security-grid">
+                    <!-- Password Management -->
+                    <div class="panel security-panel">
+                        <div class="security-header-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
-            </div>
-            <h3>Password Management</h3>
-            <p class="muted" style="margin-bottom: 20px;">Ensure your account is using a long, random password to stay
-              secure.</p>
-            <form id="change-password-form" class="security-form">
-              <label>Current Password
+                        </div>
+                        <h3>Password Management</h3>
+                        <p class="muted" style="margin-bottom: 20px;">Ensure your account is using a long, random password to stay secure.
+                        </p>
+                        <form id="change-password-form" class="security-form">
+                            <label>Current Password
                 <div class="password-input">
                   <input type="password" name="currentPassword" id="current-password"
                     placeholder="Enter current password" required />
@@ -634,7 +623,7 @@
                   </button>
                 </div>
               </label>
-              <label>New Password
+                            <label>New Password
                 <div class="password-input">
                   <input type="password" name="newPassword" id="new-password" placeholder="Enter new password"
                     required />
@@ -647,72 +636,66 @@
                   </button>
                 </div>
               </label>
-              <button type="submit" class="primary" style="margin-top: 10px;">Update Password</button>
-              <p class="form-message" id="password-message"></p>
-            </form>
-          </div>
+                            <button type="submit" class="primary" style="margin-top: 10px;">Update Password</button>
+                            <p class="form-message" id="password-message"></p>
+                        </form>
+                    </div>
 
-          <!-- Two-Factor Authentication -->
-          <div class="panel security-panel">
-            <div class="security-header-icon" style="background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <!-- Two-Factor Authentication -->
+                    <div class="panel security-panel">
+                        <div class="security-header-icon" style="background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 <circle cx="12" cy="13" r="2"></circle>
                 <line x1="12" y1="15" x2="12" y2="17"></line>
               </svg>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
-                <h3>Two-Factor Authentication (2FA)</h3>
-                <p class="muted">Add an extra layer of security to your account.</p>
-              </div>
-              <label class="toggle-switch">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h3>Two-Factor Authentication (2FA)</h3>
+                                <p class="muted">Add an extra layer of security to your account.</p>
+                            </div>
+                            <label class="toggle-switch">
                 <input type="checkbox" id="tfa-toggle">
                 <span class="toggle-slider"></span>
               </label>
-            </div>
+                        </div>
 
-            <div id="tfa-setup-container" class="hidden"
-              style="margin-top: 20px; border-top: 1px solid var(--stroke); padding-top: 20px;">
-              <p class="font-bold">Scan this QR code with your authenticator app:</p>
-              <div id="qrcode"
-                style="margin: 15px 0; background: white; padding: 10px; border-radius: 8px; display: inline-block;">
-              </div>
-              <p class="muted" style="margin-bottom: 15px; font-size: 13px;">Or enter this setup key manually: <strong
-                  id="tfa-secret-text" style="color: var(--ink); user-select: all;"></strong></p>
-              <form id="tfa-verify-form" style="display: flex; gap: 10px;">
-                <input type="text" id="tfa-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}"
-                  required
-                  style="flex: 1; text-align: center; letter-spacing: 4px; font-size: 18px; font-weight: bold;" />
-                <button type="submit" class="primary" style="width: auto;">Verify</button>
-              </form>
-              <p class="form-message" id="tfa-message"></p>
-            </div>
-          </div>
+                        <div id="tfa-setup-container" class="hidden" style="margin-top: 20px; border-top: 1px solid var(--stroke); padding-top: 20px;">
+                            <p class="font-bold">Scan this QR code with your authenticator app:</p>
+                            <div id="qrcode" style="margin: 15px 0; background: white; padding: 10px; border-radius: 8px; display: inline-block;">
+                            </div>
+                            <p class="muted" style="margin-bottom: 15px; font-size: 13px;">Or enter this setup key manually: <strong id="tfa-secret-text" style="color: var(--ink); user-select: all;"></strong></p>
+                            <form id="tfa-verify-form" style="display: flex; gap: 10px;">
+                                <input type="text" id="tfa-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required style="flex: 1; text-align: center; letter-spacing: 4px; font-size: 18px; font-weight: bold;" />
+                                <button type="submit" class="primary" style="width: auto;">Verify</button>
+                            </form>
+                            <p class="form-message" id="tfa-message"></p>
+                        </div>
+                    </div>
 
-          <!-- Active Sessions -->
-          <div class="panel security-panel" style="grid-column: 1 / -1;">
-            <div class="security-header-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #f43f5e 100%);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <!-- Active Sessions -->
+                    <div class="panel security-panel" style="grid-column: 1 / -1;">
+                        <div class="security-header-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #f43f5e 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                 <line x1="8" y1="21" x2="16" y2="21"></line>
                 <line x1="12" y1="17" x2="12" y2="21"></line>
               </svg>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div>
-                <h3>Active Sessions</h3>
-                <p class="muted">Manage and log out of your active sessions on other devices.</p>
-              </div>
-              <button id="revoke-sessions-btn" class="ghost"
-                style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Logout Other Devices</button>
-            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div>
+                                <h3>Active Sessions</h3>
+                                <p class="muted">Manage and log out of your active sessions on other devices.</p>
+                            </div>
+                            <button id="revoke-sessions-btn" class="ghost" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Logout Other Devices</button>
+                        </div>
 
-            <div class="sessions-list" id="sessions-list">
-              <!-- Loaded dynamically -->
-              <div class="session-item">
-                <div class="session-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <div class="sessions-list" id="sessions-list">
+                            <!-- Loaded dynamically -->
+                            <div class="session-item">
+                                <div class="session-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
                     <rect x="9" y="9" width="6" height="6"></rect>
                     <line x1="9" y1="1" x2="9" y2="4"></line>
@@ -724,28 +707,27 @@
                     <line x1="1" y1="9" x2="4" y2="9"></line>
                     <line x1="1" y1="14" x2="4" y2="14"></line>
                   </svg>
+                                </div>
+                                <div class="session-details">
+                                    <div class="session-device">Current Session <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left: 8px;">Active Now</span>
+                                    </div>
+                                    <div class="session-meta">Windows • Chrome • IP: Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="session-details">
-                  <div class="session-device">Current Session <span class="badge"
-                      style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left: 8px;">Active Now</span>
-                  </div>
-                  <div class="session-meta">Windows • Chrome • IP: Loading...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </section>
 
-      <!-- Cloud Services View -->
-      <section id="services-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Cloud Services</h2>
-            <p class="muted">Manage your connected cloud services</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-services" class="icon-btn" title="Toggle theme">
+            <!-- Cloud Services View -->
+            <section id="services-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Cloud Services</h2>
+                        <p class="muted">Manage your connected cloud services</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-services" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
@@ -763,155 +745,468 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
-        <div class="pricing-container">
-          <div class="pricing-header">
-            <h3>Choose Your Storage Plan</h3>
-            <p class="muted">Upgrade your storage and unlock premium features.</p>
-          </div>
-          <div class="pricing-grid">
-            <!-- Basic Tier -->
-            <div class="pricing-card">
-              <div class="tier-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Logout handled by sidebar -->
+                    </div>
+                </header>
+                <div class="pricing-container">
+                    <div class="pricing-header">
+                        <h3>Choose Your Storage Plan</h3>
+                        <p class="muted">Upgrade your storage and unlock premium features.</p>
+                    </div>
+                    <div class="pricing-grid">
+                        <!-- Basic Tier -->
+                        <div class="pricing-card">
+                            <div class="tier-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
-              </div>
-              <h4>Basic</h4>
-              <div class="price">
-                <span class="currency">₹</span><span class="amount">0</span><span class="period">/mo</span>
-              </div>
-              <ul class="features-list">
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                            </div>
+                            <h4>Basic</h4>
+                            <div class="price">
+                                <span class="currency">₹</span><span class="amount">0</span><span class="period">/mo</span>
+                            </div>
+                            <ul class="features-list">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> 5 GB Storage</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> All Cloud Providers</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> Standard Speed</li>
-                <li class="disabled"><svg width="16" height="16" fill="none" stroke="#a1a1aa" stroke-width="2"
-                    viewBox="0 0 24 24">
+                                <li class="disabled"><svg width="16" height="16" fill="none" stroke="#a1a1aa" stroke-width="2" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg> Priority Support</li>
-              </ul>
-              <button class="pricing-btn current">Current Plan</button>
-            </div>
+                            </ul>
+                            <button class="pricing-btn current">Current Plan</button>
+                        </div>
 
-            <!-- Pro Tier (Highlighted) -->
-            <div class="pricing-card popular">
-              <div class="popular-badge">Most Popular</div>
-              <div class="tier-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Pro Tier (Highlighted) -->
+                        <div class="pricing-card popular">
+                            <div class="popular-badge">Most Popular</div>
+                            <div class="tier-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path
                     d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
                   </path>
                 </svg>
-              </div>
-              <h4>Pro</h4>
-              <div class="price">
-                <span class="currency">₹</span><span class="amount">299</span><span class="period">/mo</span>
-              </div>
-              <ul class="features-list">
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                            </div>
+                            <h4>Pro</h4>
+                            <div class="price">
+                                <span class="currency">₹</span><span class="amount">299</span><span class="period">/mo</span>
+                            </div>
+                            <ul class="features-list">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> 100 GB Storage</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> All Cloud Providers</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> High Speed Sync</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> Priority Support</li>
-              </ul>
-              <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
-                <button class="pricing-btn upgrade upgrade-btn" data-plan="Pro"
-                  style="flex: 1; padding: 10px 0;">Stripe</button>
-                <button class="pricing-btn outline razorpay-btn" data-plan="Pro"
-                  style="flex: 1; padding: 10px 0;">Razorpay</button>
-              </div>
-            </div>
+                            </ul>
+                            <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
+                                <button class="pricing-btn upgrade upgrade-btn" data-plan="Pro" style="flex: 1; padding: 10px 0;">Stripe</button>
+                                <button class="pricing-btn outline razorpay-btn" data-plan="Pro" style="flex: 1; padding: 10px 0;">Razorpay</button>
+                            </div>
+                        </div>
 
-            <!-- Enterprise Tier -->
-            <div class="pricing-card">
-              <div class="tier-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <!-- Enterprise Tier -->
+                        <div class="pricing-card">
+                            <div class="tier-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
-              </div>
-              <h4>Enterprise</h4>
-              <div class="price">
-                <span class="currency">₹</span><span class="amount">999</span><span class="period">/mo</span>
-              </div>
-              <ul class="features-list">
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                            </div>
+                            <h4>Enterprise</h4>
+                            <div class="price">
+                                <span class="currency">₹</span><span class="amount">999</span><span class="period">/mo</span>
+                            </div>
+                            <ul class="features-list">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> 1 TB+ Storage</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> All Cloud Providers</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> Unlimited Speed</li>
-                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
+                                <li><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> 24/7 Dedicated Support</li>
-              </ul>
-              <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
-                <button class="pricing-btn upgrade upgrade-btn" data-plan="Enterprise"
-                  style="flex: 1; padding: 10px 0;">Stripe</button>
-                <button class="pricing-btn outline razorpay-btn" data-plan="Enterprise"
-                  style="flex: 1; padding: 10px 0;">Razorpay</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                            </ul>
+                            <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
+                                <button class="pricing-btn upgrade upgrade-btn" data-plan="Enterprise" style="flex: 1; padding: 10px 0;">Stripe</button>
+                                <button class="pricing-btn outline razorpay-btn" data-plan="Enterprise" style="flex: 1; padding: 10px 0;">Razorpay</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Settings View -->
-      <section id="settings-view" class="view-section hidden">
-        <header class="top-bar">
-          <div>
-            <h2>Settings</h2>
-            <p class="muted">Manage your preferences and account settings</p>
-          </div>
-          <div class="header-actions">
-            <button id="theme-toggle-settings" class="icon-btn" title="Toggle theme">
-              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+            <!-- Settings View -->
+            <section id="settings-view" class="view-section hidden">
+                <header class="top-bar">
+                    <div>
+                        <h2>Settings</h2>
+                        <p class="muted">Manage your preferences and account settings</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="theme-toggle-settings" class="icon-btn" title="Toggle theme">
+              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
               </svg>
-              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+              <svg class="moon-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <!-- Logout handled by sidebar -->
-          </div>
-        </header>
-        <div class="panel">
-          <h3>Settings Coming Soon</h3>
-          <p class="muted">Settings management features will be available soon</p>
-        </div>
-      </section>
-    </main>
-  </div>
+                        <button id="logout-btn-settings" class="ghost">Logout</button>
+                    </div>
+                </header>
+
+                <!-- Settings Navigation Tabs -->
+                <div class="stg-tabs">
+                    <button class="stg-tab active" data-stg="profile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </button>
+                    <button class="stg-tab" data-stg="security">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Security
+          </button>
+                    <button class="stg-tab" data-stg="cloud">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            Cloud Providers
+          </button>
+                    <button class="stg-tab" data-stg="storage">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Storage
+          </button>
+                    <button class="stg-tab" data-stg="notifications">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notifications
+          </button>
+                    <button class="stg-tab" data-stg="appearance">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/></svg>
+            Appearance
+          </button>
+                </div>
+
+                <!-- PROFILE SETTINGS -->
+                <div class="stg-section active" id="stg-profile">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:var(--gradient-1);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div>
+                                <h3>Profile Settings</h3>
+                                <p class="muted">Manage your personal information</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-profile-top">
+                                <div class="stg-avatar-wrap">
+                                    <div class="stg-avatar" id="stg-avatar-preview">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    </div>
+                                    <button class="stg-avatar-btn" id="stg-change-avatar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </button>
+                                </div>
+                                <div class="stg-profile-info">
+                                    <span class="stg-profile-name" id="stg-display-name">User</span>
+                                    <span class="stg-profile-email muted" id="stg-display-email">user@email.com</span>
+                                </div>
+                            </div>
+                            <div class="stg-form-grid">
+                                <div class="stg-field"><label>Full Name</label><input type="text" id="stg-name" placeholder="Your full name" value="User" /></div>
+                                <div class="stg-field"><label>Email Address</label><input type="email" id="stg-email" placeholder="you@email.com" value="user@email.com" /></div>
+                                <div class="stg-field"><label>Phone Number</label><input type="tel" id="stg-phone" placeholder="+1 (555) 000-0000" /></div>
+                                <div class="stg-field">
+                                    <label>Timezone</label>
+                                    <select id="stg-timezone">
+                    <option>Asia/Kolkata (IST)</option><option>America/New_York (EST)</option><option>Europe/London (GMT)</option><option>Asia/Tokyo (JST)</option>
+                  </select>
+                                </div>
+                            </div>
+                            <div class="stg-actions">
+                                <button class="stg-btn-primary" id="stg-save-profile">Save Changes</button>
+                                <button class="stg-btn-ghost" id="stg-change-password-link">Change Password</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECURITY SETTINGS -->
+                <div class="stg-section" id="stg-security">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:var(--gradient-2);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div>
+                                <h3>Security Settings</h3>
+                                <p class="muted">Protect your account with enhanced security</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info">
+                                    <span class="stg-toggle-title">Two-Factor Authentication</span>
+                                    <span class="stg-toggle-desc muted">Add an extra layer of security with 2FA</span>
+                                </div>
+                                <label class="stg-switch"><input type="checkbox" id="stg-2fa-toggle" /><span class="stg-slider"></span></label>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-subsection">
+                                <h4>Change Password</h4>
+                                <div class="stg-form-stack">
+                                    <div class="stg-field"><label>Current Password</label><input type="password" id="stg-cur-pass" placeholder="Enter current password" /></div>
+                                    <div class="stg-field"><label>New Password</label><input type="password" id="stg-new-pass" placeholder="Enter new password" /></div>
+                                    <div class="stg-field"><label>Confirm New Password</label><input type="password" id="stg-confirm-pass" placeholder="Confirm new password" /></div>
+                                    <button class="stg-btn-primary" id="stg-update-pass">Update Password</button>
+                                    <div id="stg-pass-msg" class="stg-msg"></div>
+                                </div>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-subsection">
+                                <h4>Login Activity</h4>
+                                <p class="muted" style="margin-bottom:12px;">Recent logins to your account</p>
+                                <div class="stg-activity-list">
+                                    <div class="stg-activity-item">
+                                        <div class="stg-act-icon stg-act-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                                        <div class="stg-act-details"><span>Chrome on Windows</span><span class="muted">Mumbai, India — 2 hours ago</span></div>
+                                        <span class="stg-badge stg-badge-ok">Current</span>
+                                    </div>
+                                    <div class="stg-activity-item">
+                                        <div class="stg-act-icon stg-act-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+                                        <div class="stg-act-details"><span>Safari on iPhone</span><span class="muted">Delhi, India — 1 day ago</span></div>
+                                        <span class="stg-badge stg-badge-muted">Mobile</span>
+                                    </div>
+                                    <div class="stg-activity-item">
+                                        <div class="stg-act-icon stg-act-warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                                        <div class="stg-act-details"><span>Firefox on Linux</span><span class="muted">Unknown location — 3 days ago</span></div>
+                                        <span class="stg-badge stg-badge-warn">New Device</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-subsection">
+                                <h4>Active Devices</h4>
+                                <p class="muted" style="margin-bottom:12px;">Devices currently signed in</p>
+                                <div class="stg-devices-list">
+                                    <div class="stg-device-item">
+                                        <div class="stg-device-icon">💻</div>
+                                        <div class="stg-device-info"><span>Windows PC — Chrome</span><span class="muted">Last active: Just now</span></div>
+                                        <span class="stg-badge stg-badge-ok">This Device</span>
+                                    </div>
+                                    <div class="stg-device-item">
+                                        <div class="stg-device-icon">📱</div>
+                                        <div class="stg-device-info"><span>iPhone 15 — Safari</span><span class="muted">Last active: 1 hour ago</span></div>
+                                        <button class="stg-btn-danger-sm" data-device="iphone">Revoke</button>
+                                    </div>
+                                    <div class="stg-device-item">
+                                        <div class="stg-device-icon">🖥️</div>
+                                        <div class="stg-device-info"><span>MacBook Pro — Firefox</span><span class="muted">Last active: 2 days ago</span></div>
+                                        <button class="stg-btn-danger-sm" data-device="macbook">Revoke</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLOUD PROVIDER SETTINGS -->
+                <div class="stg-section" id="stg-cloud">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:var(--gradient-3);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                            </div>
+                            <div>
+                                <h3>Cloud Provider Settings</h3>
+                                <p class="muted">Connect and manage your cloud storage services</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-providers-grid">
+                                <div class="stg-provider-card stg-provider-connected" data-provider="aws">
+                                    <div class="stg-provider-top">
+                                        <div class="stg-provider-logo" style="background:linear-gradient(135deg,#FF9900,#FF6600);"><span style="font-size:20px;font-weight:800;color:#fff;">S3</span></div>
+                                        <span class="stg-badge stg-badge-ok" id="stg-aws-status">Connected</span>
+                                    </div>
+                                    <h4>AWS S3</h4>
+                                    <p class="muted">Amazon Simple Storage Service</p>
+                                    <div class="stg-field" style="margin-top:12px;"><label>API Key</label><input type="password" placeholder="Enter AWS access key" class="stg-api-key" data-provider="aws" value="AKIA••••••••EXAMPLE" /></div>
+                                    <button class="stg-btn-danger-sm stg-provider-toggle" data-provider="aws" style="margin-top:10px;width:100%;">Disconnect</button>
+                                </div>
+                                <div class="stg-provider-card stg-provider-connected" data-provider="firebase">
+                                    <div class="stg-provider-top">
+                                        <div class="stg-provider-logo" style="background:linear-gradient(135deg,#FFCA28,#FF8F00);"><span style="font-size:18px;">🔥</span></div>
+                                        <span class="stg-badge stg-badge-ok" id="stg-firebase-status">Connected</span>
+                                    </div>
+                                    <h4>Firebase Storage</h4>
+                                    <p class="muted">Google Firebase Cloud Storage</p>
+                                    <div class="stg-field" style="margin-top:12px;"><label>Project ID</label><input type="text" placeholder="Enter Firebase project ID" class="stg-api-key" data-provider="firebase" value="campus-cloud-9a88c" /></div>
+                                    <button class="stg-btn-danger-sm stg-provider-toggle" data-provider="firebase" style="margin-top:10px;width:100%;">Disconnect</button>
+                                </div>
+                                <div class="stg-provider-card stg-provider-connected" data-provider="cloudinary">
+                                    <div class="stg-provider-top">
+                                        <div class="stg-provider-logo" style="background:linear-gradient(135deg,#3448C5,#6C63FF);"><span style="font-size:18px;">☁️</span></div>
+                                        <span class="stg-badge stg-badge-ok" id="stg-cloudinary-status">Connected</span>
+                                    </div>
+                                    <h4>Cloudinary</h4>
+                                    <p class="muted">Media management & delivery</p>
+                                    <div class="stg-field" style="margin-top:12px;"><label>Cloud Name</label><input type="text" placeholder="Enter cloud name" class="stg-api-key" data-provider="cloudinary" value="dcloudinary" /></div>
+                                    <button class="stg-btn-danger-sm stg-provider-toggle" data-provider="cloudinary" style="margin-top:10px;width:100%;">Disconnect</button>
+                                </div>
+                                <div class="stg-provider-card" data-provider="supabase">
+                                    <div class="stg-provider-top">
+                                        <div class="stg-provider-logo" style="background:linear-gradient(135deg,#3ECF8E,#1E8E5E);"><span style="font-size:18px;font-weight:800;color:#fff;">S</span></div>
+                                        <span class="stg-badge stg-badge-muted" id="stg-supabase-status">Not Connected</span>
+                                    </div>
+                                    <h4>Supabase Storage</h4>
+                                    <p class="muted">Open source storage solution</p>
+                                    <div class="stg-field" style="margin-top:12px;"><label>API Key</label><input type="password" placeholder="Enter Supabase API key" class="stg-api-key" data-provider="supabase" /></div>
+                                    <button class="stg-btn-primary stg-provider-toggle" data-provider="supabase" style="margin-top:10px;width:100%;">Connect</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STORAGE PREFERENCES -->
+                <div class="stg-section" id="stg-storage">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:var(--gradient-4);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                            </div>
+                            <div>
+                                <h3>Storage Preferences</h3>
+                                <p class="muted">Configure storage behavior and limits</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-field" style="max-width:360px;">
+                                <label>Default Cloud Provider</label>
+                                <select id="stg-default-provider">
+                  <option value="firebase">Firebase Storage</option><option value="cloudinary">Cloudinary</option><option value="aws">AWS S3</option><option value="supabase">Supabase Storage</option>
+                </select>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Auto Backup</span><span class="stg-toggle-desc muted">Automatically backup files to secondary cloud</span></div>
+                                <label class="stg-switch"><input type="checkbox" id="stg-auto-backup" checked /><span class="stg-slider"></span></label>
+                            </div>
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">File Versioning</span><span class="stg-toggle-desc muted">Keep previous versions of uploaded files</span></div>
+                                <label class="stg-switch"><input type="checkbox" id="stg-versioning" /><span class="stg-slider"></span></label>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-subsection">
+                                <h4>Storage Usage</h4>
+                                <div class="stg-storage-bar-wrap">
+                                    <div class="stg-storage-labels"><span>Used: <strong id="stg-used">1.2 GB</strong></span><span class="muted">of <strong>5 GB</strong></span></div>
+                                    <div class="stg-storage-bar">
+                                        <div class="stg-storage-fill" id="stg-storage-fill" style="width:24%;"></div>
+                                    </div>
+                                    <div class="stg-storage-breakdown">
+                                        <div class="stg-storage-segment"><span class="stg-dot" style="background:#FF9900;"></span><span>AWS S3 — 420 MB</span></div>
+                                        <div class="stg-storage-segment"><span class="stg-dot" style="background:#FFCA28;"></span><span>Firebase — 380 MB</span></div>
+                                        <div class="stg-storage-segment"><span class="stg-dot" style="background:#6C63FF;"></span><span>Cloudinary — 400 MB</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATION SETTINGS -->
+                <div class="stg-section" id="stg-notifications">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:var(--gradient-5);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            </div>
+                            <div>
+                                <h3>Notification Settings</h3>
+                                <p class="muted">Control how you receive alerts and updates</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Email Notifications</span><span class="stg-toggle-desc muted">Receive important updates via email</span></div><label class="stg-switch"><input type="checkbox" id="stg-email-notif" checked /><span class="stg-slider"></span></label></div>
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Upload Success Alerts</span><span class="stg-toggle-desc muted">Get notified when file uploads complete</span></div><label class="stg-switch"><input type="checkbox" id="stg-upload-notif" checked /><span class="stg-slider"></span></label></div>
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Security Alerts</span><span class="stg-toggle-desc muted">Alert on suspicious login attempts</span></div><label class="stg-switch"><input type="checkbox" id="stg-security-notif" checked /><span class="stg-slider"></span></label></div>
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Storage Limit Warning</span><span class="stg-toggle-desc muted">Notify when storage reaches 80% capacity</span></div><label class="stg-switch"><input type="checkbox" id="stg-storage-notif" checked /><span class="stg-slider"></span></label></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- APPEARANCE SETTINGS -->
+                <div class="stg-section" id="stg-appearance">
+                    <div class="stg-card">
+                        <div class="stg-card-header">
+                            <div class="stg-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#d946ef);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/></svg>
+                            </div>
+                            <div>
+                                <h3>Appearance Settings</h3>
+                                <p class="muted">Customize the look and feel</p>
+                            </div>
+                        </div>
+                        <div class="stg-card-body">
+                            <div class="stg-toggle-row">
+                                <div class="stg-toggle-info"><span class="stg-toggle-title">Dark Mode</span><span class="stg-toggle-desc muted">Switch between light and dark themes</span></div><label class="stg-switch"><input type="checkbox" id="stg-dark-toggle" /><span class="stg-slider"></span></label></div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-subsection">
+                                <h4>Dashboard Layout</h4>
+                                <div class="stg-layout-options">
+                                    <label class="stg-layout-opt active" data-layout="default">
+                    <div class="stg-layout-preview"><div class="stg-lp-sidebar"></div><div class="stg-lp-main"><div class="stg-lp-bar"></div><div class="stg-lp-grid"><div class="stg-lp-block"></div><div class="stg-lp-block"></div></div></div></div>
+                    <span>Default</span>
+                  </label>
+                                    <label class="stg-layout-opt" data-layout="compact">
+                    <div class="stg-layout-preview"><div class="stg-lp-sidebar" style="width:20%;"></div><div class="stg-lp-main"><div class="stg-lp-bar"></div><div class="stg-lp-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="stg-lp-block"></div><div class="stg-lp-block"></div><div class="stg-lp-block"></div></div></div></div>
+                    <span>Compact</span>
+                  </label>
+                                    <label class="stg-layout-opt" data-layout="wide">
+                    <div class="stg-layout-preview"><div class="stg-lp-main" style="width:100%;"><div class="stg-lp-bar"></div><div class="stg-lp-grid"><div class="stg-lp-block"></div><div class="stg-lp-block"></div></div></div></div>
+                    <span>Wide</span>
+                  </label>
+                                </div>
+                            </div>
+                            <div class="stg-divider"></div>
+                            <div class="stg-field" style="max-width:280px;">
+                                <label>Language</label>
+                                <select id="stg-language"><option>English</option><option>Hindi</option><option>Spanish</option><option>French</option><option>German</option><option>Japanese</option></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
 </body>
 
 </html>

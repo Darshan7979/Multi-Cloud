@@ -1,83 +1,93 @@
 const API_BASE = "http://localhost:4000/api";
 
 const getFileIcon = (filename) => {
-  const ext = filename.split(".").pop().toLowerCase();
-  const icons = {
-    pdf: "📄",
-    doc: "📝", docx: "📝", txt: "📝",
-    jpg: "🖼️", jpeg: "🖼️", png: "🖼️", gif: "🖼️",
-    mp4: "🎥", avi: "🎥", mov: "🎥",
-    zip: "📦", rar: "📦",
-    xls: "📊", xlsx: "📊",
-    mp3: "🎵", wav: "🎵",
-  };
-  return icons[ext] || "📁";
+    const ext = filename.split(".").pop().toLowerCase();
+    const icons = {
+        pdf: "📄",
+        doc: "📝",
+        docx: "📝",
+        txt: "📝",
+        jpg: "🖼️",
+        jpeg: "🖼️",
+        png: "🖼️",
+        gif: "🖼️",
+        mp4: "🎥",
+        avi: "🎥",
+        mov: "🎥",
+        zip: "📦",
+        rar: "📦",
+        xls: "📊",
+        xlsx: "📊",
+        mp3: "🎵",
+        wav: "🎵",
+    };
+    return icons[ext] || "📁";
 };
 
 const state = {
-  token: null,
-  user: null,
-  files: [],
-  summary: null,
+    token: null,
+    user: null,
+    files: [],
+    summary: null,
 };
 
 let charts = {};
 
 // ── Toast Notifications ──────────────────────────────────
 function showToast(message, type = 'info', duration = 4000) {
-  // Remove existing toasts
-  document.querySelectorAll('.toast').forEach(t => t.remove());
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(t => t.remove());
 
-  const icons = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ'
-  };
+    const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ'
+    };
 
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span style="font-size:16px">${icons[type] || icons.info}</span><span>${message}</span>`;
-  document.body.appendChild(toast);
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span style="font-size:16px">${icons[type] || icons.info}</span><span>${message}</span>`;
+    document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.style.transition = 'all 0.4s ease';
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(12px)';
-    setTimeout(() => toast.remove(), 400);
-  }, duration);
+    setTimeout(() => {
+        toast.style.transition = 'all 0.4s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(12px)';
+        setTimeout(() => toast.remove(), 400);
+    }, duration);
 }
 
 
 // Theme toggle functionality
 const initTheme = () => {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  if (savedTheme === 'dark') {
-    document.body.classList.add('dark-theme');
-    updateThemeIcon(true);
-  }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        updateThemeIcon(true);
+    }
 };
 
 const updateThemeIcon = (isDark) => {
-  const themeToggle = document.getElementById('theme-toggle');
-  if (!themeToggle) return;
+    const themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) return;
 
-  const sunIcon = themeToggle.querySelector('.sun-icon');
-  const moonIcon = themeToggle.querySelector('.moon-icon');
+    const sunIcon = themeToggle.querySelector('.sun-icon');
+    const moonIcon = themeToggle.querySelector('.moon-icon');
 
-  if (isDark) {
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-  } else {
-    sunIcon.classList.remove('hidden');
-    moonIcon.classList.add('hidden');
-  }
+    if (isDark) {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+    }
 };
 
 const toggleTheme = () => {
-  const isDark = document.body.classList.toggle('dark-theme');
-  localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  updateThemeIcon(isDark);
-  if (typeof renderAnalytics === 'function') renderAnalytics();
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon(isDark);
+    if (typeof renderAnalytics === 'function') renderAnalytics();
 };
 
 // Initialize theme on load
@@ -104,376 +114,351 @@ const securityScore = document.getElementById("security-score");
 const securityBar = document.getElementById("security-bar");
 
 const setView = (view) => {
-  if (view === "auth") {
-    // Auth view
-    authView.classList.remove("hidden");
-    document.getElementById("dashboard-view")?.classList.add("hidden");
-    document.getElementById("upload-view")?.classList.add("hidden");
-    document.getElementById("files-view")?.classList.add("hidden");
-    document.getElementById("analytics-view")?.classList.add("hidden");
-    document.getElementById("security-view")?.classList.add("hidden");
-    document.getElementById("services-view")?.classList.add("hidden");
-    document.getElementById("settings-view")?.classList.add("hidden");
-  } else {
-    // Dashboard views
-    authView.classList.add("hidden");
-
-    // Hide all dashboard views first
-    document.getElementById("dashboard-view")?.classList.add("hidden");
-    document.getElementById("upload-view")?.classList.add("hidden");
-    document.getElementById("files-view")?.classList.add("hidden");
-    document.getElementById("analytics-view")?.classList.add("hidden");
-    document.getElementById("security-view")?.classList.add("hidden");
-    document.getElementById("services-view")?.classList.add("hidden");
-    document.getElementById("settings-view")?.classList.add("hidden");
-
-    // Show the requested view
-    const viewId = `${view}-view`;
-    document.getElementById(viewId)?.classList.remove("hidden");
-
-    // Update active nav button
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.view === view);
-    });
-
-    // Trigger security load if needed
-    if (view === "security" && typeof loadSecurityData === "function") {
-      loadSecurityData();
+    var allViews = ["dashboard-view", "upload-view", "files-view", "analytics-view", "security-view", "services-view", "settings-view"];
+    if (view === "auth") {
+        authView.classList.remove("hidden");
+        allViews.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.add("hidden"); });
+    } else {
+        authView.classList.add("hidden");
+        allViews.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.add("hidden"); });
+        var target = document.getElementById(view + "-view");
+        if (target) target.classList.remove("hidden");
+        document.querySelectorAll(".nav-btn").forEach(btn => {
+            btn.classList.toggle("active", btn.dataset.view === view);
+        });
+        if (view === "security" && typeof loadSecurityData === "function") {
+            loadSecurityData();
+        }
     }
-  }
 };
 
 const setTab = (tab) => {
-  document.querySelectorAll(".tab").forEach((button) => {
-    button.classList.toggle("active", button.dataset.tab === tab);
-  });
-
-  const forms = [loginForm, registerForm].filter(f => f);
-  forms.forEach((form) => {
-    form.style.opacity = "0";
-    form.style.transform = "translateY(10px)";
-  });
-
-  setTimeout(() => {
-    if (tab === "login") {
-      if (loginForm) loginForm.classList.remove("hidden");
-      if (registerForm) registerForm.classList.add("hidden");
-      if (loginMessage) loginMessage.textContent = "";
-    } else {
-      if (loginForm) loginForm.classList.add("hidden");
-      if (registerForm) registerForm.classList.remove("hidden");
-      if (registerMessage) registerMessage.textContent = "";
-    }
-
-    const activeForm = tab === "login" ? loginForm : registerForm;
-    if (activeForm) {
-      setTimeout(() => {
-        activeForm.style.opacity = "1";
-        activeForm.style.transform = "translateY(0)";
-      }, 10);
-    }
-  }, 200);
-};
-
-const apiRequest = async (path, options = {}) => {
-  const headers = options.headers || {};
-
-  // Get fresh token from Firebase if user is logged in
-  const currentUser = auth.currentUser;
-  if (currentUser) {
-    const idToken = await currentUser.getIdToken();
-    headers.Authorization = `Bearer ${idToken}`;
-  }
-
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || "Request failed");
-  }
-
-  return data;
-};
-
-const loadStats = async () => {
-  const summary = await apiRequest("/analytics/summary");
-  state.summary = summary;
-
-  // Update old stats
-  if (fileCount) fileCount.textContent = summary.fileCount;
-  if (privateCount) privateCount.textContent = summary.privateCount;
-
-  const securityScoreCardEl = document.querySelectorAll("#security-score");
-  if (securityScoreCardEl.length > 0) {
-    securityScoreCardEl.forEach(el => {
-      el.textContent = `${summary.securityScore}%`;
+    document.querySelectorAll(".tab").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === tab);
     });
-  }
 
-  if (securityBar) securityBar.style.width = `${summary.securityScore}%`;
+    const forms = [loginForm, registerForm].filter(f => f);
+    forms.forEach((form) => {
+        form.style.opacity = "0";
+        form.style.transform = "translateY(10px)";
+    });
 
-  // Active services (count cloud services with files)
-  const cloudServices = summary.byCloud ? summary.byCloud.length : 0;
-  const activeServicesEl = document.getElementById("active-services");
-  if (activeServicesEl) activeServicesEl.textContent = cloudServices > 0 ? cloudServices : "--";
+    setTimeout(() => {
+        if (tab === "login") {
+            if (loginForm) loginForm.classList.remove("hidden");
+            if (registerForm) registerForm.classList.add("hidden");
+            if (loginMessage) loginMessage.textContent = "";
+        } else {
+            if (loginForm) loginForm.classList.add("hidden");
+            if (registerForm) registerForm.classList.remove("hidden");
+            if (registerMessage) registerMessage.textContent = "";
+        }
 
-  // Update new dashboard elements
-  if (storageUsed) {
-    storageUsed.textContent = `${summary.storageUsedMB} MB`;
-  }
-  const storageMbEl = document.getElementById("storage-used-mb");
-  if (storageMbEl) {
-    const parent = storageMbEl.parentElement;
-    if (parent) {
-      parent.innerHTML = `<span id="storage-used-mb">${summary.storageUsedMB} MB</span> of 5 GB used`;
+        const activeForm = tab === "login" ? loginForm : registerForm;
+        if (activeForm) {
+            setTimeout(() => {
+                activeForm.style.opacity = "1";
+                activeForm.style.transform = "translateY(0)";
+            }, 10);
+        }
+    }, 200);
+};
+
+const apiRequest = async(path, options = {}) => {
+    const headers = options.headers || {};
+
+    // Get fresh token from Firebase if user is logged in
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        const idToken = await currentUser.getIdToken();
+        headers.Authorization = `Bearer ${idToken}`;
     }
-  }
 
-  const MAX_STORAGE_MB = 5 * 1024; // 5 GB limit
-  const storageUsedPercent = Math.min((summary.storageUsedMB / MAX_STORAGE_MB) * 100, 100);
+    const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers,
+    });
 
-  const storagePercentEl = document.getElementById("storage-percent");
-  if (storagePercentEl) storagePercentEl.textContent = storageUsedPercent.toFixed(1);
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Request failed");
+    }
 
-  const storageFillEl = document.getElementById("storage-fill");
-  if (storageFillEl) storageFillEl.style.width = `${storageUsedPercent}%`;
+    return data;
+};
 
-  // Populate cloud distribution
-  const distributionContainer = document.getElementById("cloud-distribution");
-  if (distributionContainer) {
-    distributionContainer.innerHTML = "";
+const loadStats = async() => {
+    const summary = await apiRequest("/analytics/summary");
+    state.summary = summary;
 
-    if (summary.byCloud && summary.byCloud.length > 0) {
-      const colors = {
-        firebase: "#ff9800",
-        cloudinary: "#3498db",
-        supabase: "#3ECF8E",
-        mongodb: "#2ecc40"
-      };
+    // Update old stats
+    if (fileCount) fileCount.textContent = summary.fileCount;
+    if (privateCount) privateCount.textContent = summary.privateCount;
 
-      summary.byCloud.forEach((item) => {
-        const percentage = summary.storageUsedBytes > 0 ? (item.totalBytes / summary.storageUsedBytes) * 100 : 0;
-        const color = colors[item.cloudService] || "#5856D6";
+    const securityScoreCardEl = document.querySelectorAll("#security-score");
+    if (securityScoreCardEl.length > 0) {
+        securityScoreCardEl.forEach(el => {
+            el.textContent = `${summary.securityScore}%`;
+        });
+    }
 
-        const displayWidth = percentage > 0 && percentage < 1 ? 1 : percentage;
-        const displayPercent = percentage > 0 && percentage < 1 ? '<1' : Math.round(percentage);
+    if (securityBar) securityBar.style.width = `${summary.securityScore}%`;
 
-        const div = document.createElement("div");
-        div.className = "distribution-item";
-        div.innerHTML = `
+    // Active services (count cloud services with files)
+    const cloudServices = summary.byCloud ? summary.byCloud.length : 0;
+    const activeServicesEl = document.getElementById("active-services");
+    if (activeServicesEl) activeServicesEl.textContent = cloudServices > 0 ? cloudServices : "--";
+
+    // Update new dashboard elements
+    if (storageUsed) {
+        storageUsed.textContent = `${summary.storageUsedMB} MB`;
+    }
+    const storageMbEl = document.getElementById("storage-used-mb");
+    if (storageMbEl) {
+        const parent = storageMbEl.parentElement;
+        if (parent) {
+            parent.innerHTML = `<span id="storage-used-mb">${summary.storageUsedMB} MB</span> of 5 GB used`;
+        }
+    }
+
+    const MAX_STORAGE_MB = 5 * 1024; // 5 GB limit
+    const storageUsedPercent = Math.min((summary.storageUsedMB / MAX_STORAGE_MB) * 100, 100);
+
+    const storagePercentEl = document.getElementById("storage-percent");
+    if (storagePercentEl) storagePercentEl.textContent = storageUsedPercent.toFixed(1);
+
+    const storageFillEl = document.getElementById("storage-fill");
+    if (storageFillEl) storageFillEl.style.width = `${storageUsedPercent}%`;
+
+    // Populate cloud distribution
+    const distributionContainer = document.getElementById("cloud-distribution");
+    if (distributionContainer) {
+        distributionContainer.innerHTML = "";
+
+        if (summary.byCloud && summary.byCloud.length > 0) {
+            const colors = {
+                firebase: "#ff9800",
+                cloudinary: "#3498db",
+                supabase: "#3ECF8E",
+                mongodb: "#2ecc40"
+            };
+
+            summary.byCloud.forEach((item) => {
+                const percentage = summary.storageUsedBytes > 0 ? (item.totalBytes / summary.storageUsedBytes) * 100 : 0;
+                const color = colors[item.cloudService] || "#5856D6";
+
+                const displayWidth = percentage > 0 && percentage < 1 ? 1 : percentage;
+                const displayPercent = percentage > 0 && percentage < 1 ? '<1' : Math.round(percentage);
+
+                const div = document.createElement("div");
+                div.className = "distribution-item";
+                div.innerHTML = `
           <div class="dist-label">${item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1)}</div>
           <div class="dist-bar">
             <div class="dist-fill" style="width: ${displayWidth}%; background: ${color};"></div>
           </div>
           <div class="dist-percent">${displayPercent}%</div>
         `;
-        distributionContainer.appendChild(div);
-      });
-    } else {
-      const empty = document.createElement("div");
-      empty.style.textAlign = "center";
-      empty.style.color = "#999";
-      empty.style.padding = "20px";
-      empty.textContent = "No files uploaded yet";
-      distributionContainer.appendChild(empty);
+                distributionContainer.appendChild(div);
+            });
+        } else {
+            const empty = document.createElement("div");
+            empty.style.textAlign = "center";
+            empty.style.color = "#999";
+            empty.style.padding = "20px";
+            empty.textContent = "No files uploaded yet";
+            distributionContainer.appendChild(empty);
+        }
     }
-  }
 
-  renderAnalytics();
+    renderAnalytics();
 };
 
 const renderAnalytics = () => {
-  if (!state.summary || !state.files) return;
+    if (!state.summary || !state.files) return;
 
-  // Total Bandwidth & Requests (Real data from backend)
-  const bandwidthEl = document.getElementById("analytics-bandwidth");
-  const requestsEl = document.getElementById("analytics-requests");
+    // Total Bandwidth & Requests (Real data from backend)
+    const bandwidthEl = document.getElementById("analytics-bandwidth");
+    const requestsEl = document.getElementById("analytics-requests");
 
-  if (bandwidthEl) {
-    const totalGB = state.summary.totalBandwidthGB || 0;
-    bandwidthEl.textContent = `${totalGB} GB`;
-  }
-  if (requestsEl) {
-    requestsEl.textContent = state.summary.totalRequests || 0;
-  }
-
-  // Data for Chart.js
-  const isDark = document.body.classList.contains('dark-theme');
-  const textColor = isDark ? '#e4e4e7' : '#0f172a';
-  const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
-
-  const commonOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    color: textColor,
-    plugins: {
-      legend: { labels: { color: textColor, font: { family: 'Outfit', size: 12 } } },
-      tooltip: { backgroundColor: isDark ? '#1a1a1a' : '#fff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1 }
+    if (bandwidthEl) {
+        const totalGB = state.summary.totalBandwidthGB || 0;
+        bandwidthEl.textContent = `${totalGB} GB`;
     }
-  };
-
-  // 1. Storage Usage Over Time (Line Chart)
-  const timelineCtx = document.getElementById('storageTimelineChart');
-  if (timelineCtx) {
-    if (charts.timeline) charts.timeline.destroy();
-
-    const timelineData = {};
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const today = new Date();
-
-    // Initialize last 6 months
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
-      timelineData[key] = 0;
+    if (requestsEl) {
+        requestsEl.textContent = state.summary.totalRequests || 0;
     }
 
-    // Add file sizes (in MB)
-    let hasHistoricalData = false;
-    state.files.forEach(f => {
-      const d = new Date(f.createdAt || Date.now());
-      const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
-      if (timelineData[key] !== undefined) {
-        timelineData[key] += f.sizeBytes / (1024 * 1024);
-        hasHistoricalData = true;
-      }
-    });
+    // Data for Chart.js
+    const isDark = document.body.classList.contains('dark-theme');
+    const textColor = isDark ? '#e4e4e7' : '#0f172a';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
 
-    let cumulative = 0;
-    const labels = Object.keys(timelineData);
-    let data;
-
-    if (!hasHistoricalData && state.summary.storageUsedMB > 0) {
-      // Fallback smooth curve if no files with valid history
-      data = [0, 0, 0, state.summary.storageUsedMB * 0.3, state.summary.storageUsedMB * 0.7, state.summary.storageUsedMB];
-    } else {
-      data = labels.map(k => {
-        cumulative += timelineData[k];
-        return cumulative.toFixed(2);
-      });
-    }
-
-    charts.timeline = new Chart(timelineCtx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Storage Used (MB)',
-          data: data,
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#6366f1',
-        }]
-      },
-      options: {
-        ...commonOptions,
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor } },
-          y: { grid: { color: gridColor }, ticks: { color: textColor } }
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        color: textColor,
+        plugins: {
+            legend: { labels: { color: textColor, font: { family: 'Outfit', size: 12 } } },
+            tooltip: { backgroundColor: isDark ? '#1a1a1a' : '#fff', titleColor: textColor, bodyColor: textColor, borderColor: gridColor, borderWidth: 1 }
         }
-      }
-    });
-  }
+    };
 
-  // 2. File Type Distribution (Doughnut Chart)
-  const fileTypeCtx = document.getElementById('fileTypeChart');
-  if (fileTypeCtx) {
-    if (charts.fileType) charts.fileType.destroy();
+    // 1. Storage Usage Over Time (Line Chart)
+    const timelineCtx = document.getElementById('storageTimelineChart');
+    if (timelineCtx) {
+        if (charts.timeline) charts.timeline.destroy();
 
-    const typeDistribution = {};
-    if (state.files.length > 0) {
-      state.files.forEach(f => {
-        const ext = f.originalName.split('.').pop().toLowerCase();
-        const type = ['jpg', 'png', 'jpeg', 'gif', 'svg'].includes(ext) ? 'Images' :
-          ['mp4', 'mov', 'avi', 'mkv'].includes(ext) ? 'Videos' :
-            ['pdf', 'doc', 'docx', 'txt', 'csv', 'xlsx'].includes(ext) ? 'Documents' : 'Others';
-        typeDistribution[type] = (typeDistribution[type] || 0) + 1;
-      });
+        const timelineData = {};
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const today = new Date();
+
+        // Initialize last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
+            timelineData[key] = 0;
+        }
+
+        // Add file sizes (in MB)
+        let hasHistoricalData = false;
+        state.files.forEach(f => {
+            const d = new Date(f.createdAt || Date.now());
+            const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
+            if (timelineData[key] !== undefined) {
+                timelineData[key] += f.sizeBytes / (1024 * 1024);
+                hasHistoricalData = true;
+            }
+        });
+
+        let cumulative = 0;
+        const labels = Object.keys(timelineData);
+        let data;
+
+        if (!hasHistoricalData && state.summary.storageUsedMB > 0) {
+            // Fallback smooth curve if no files with valid history
+            data = [0, 0, 0, state.summary.storageUsedMB * 0.3, state.summary.storageUsedMB * 0.7, state.summary.storageUsedMB];
+        } else {
+            data = labels.map(k => {
+                cumulative += timelineData[k];
+                return cumulative.toFixed(2);
+            });
+        }
+
+        charts.timeline = new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Storage Used (MB)',
+                    data: data,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#6366f1',
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                }
+            }
+        });
     }
 
-    const labels = Object.keys(typeDistribution).length > 0 ? Object.keys(typeDistribution) : ['No Files'];
-    const data = Object.keys(typeDistribution).length > 0 ? Object.values(typeDistribution) : [1];
+    // 2. File Type Distribution (Doughnut Chart)
+    const fileTypeCtx = document.getElementById('fileTypeChart');
+    if (fileTypeCtx) {
+        if (charts.fileType) charts.fileType.destroy();
 
-    charts.fileType = new Chart(fileTypeCtx, {
-      type: 'doughnut',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: data,
-          backgroundColor: Object.keys(typeDistribution).length > 0 ? ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] : ['#e2e8f0'],
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        ...commonOptions,
-        cutout: '70%',
-      }
-    });
-  }
+        const typeDistribution = {};
+        if (state.files.length > 0) {
+            state.files.forEach(f => {
+                const ext = f.originalName.split('.').pop().toLowerCase();
+                const type = ['jpg', 'png', 'jpeg', 'gif', 'svg'].includes(ext) ? 'Images' : ['mp4', 'mov', 'avi', 'mkv'].includes(ext) ? 'Videos' : ['pdf', 'doc', 'docx', 'txt', 'csv', 'xlsx'].includes(ext) ? 'Documents' : 'Others';
+                typeDistribution[type] = (typeDistribution[type] || 0) + 1;
+            });
+        }
 
-  // 3. Cloud Provider Distribution (Pie Chart)
-  const cloudCtx = document.getElementById('cloudProviderChart');
-  if (cloudCtx) {
-    if (charts.cloud) charts.cloud.destroy();
+        const labels = Object.keys(typeDistribution).length > 0 ? Object.keys(typeDistribution) : ['No Files'];
+        const data = Object.keys(typeDistribution).length > 0 ? Object.values(typeDistribution) : [1];
 
-    let labels = [];
-    let data = [];
-
-    if (state.summary.byCloud && state.summary.byCloud.length > 0) {
-      state.summary.byCloud.forEach((item) => {
-        const percentage = state.summary.storageUsedBytes > 0 ? (item.totalBytes / state.summary.storageUsedBytes) * 100 : 0;
-        labels.push(item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1));
-        data.push(percentage.toFixed(2));
-      });
-    } else {
-      labels = ['No Files'];
-      data = [100];
+        charts.fileType = new Chart(fileTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: Object.keys(typeDistribution).length > 0 ? ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] : ['#e2e8f0'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '70%',
+            }
+        });
     }
 
-    charts.cloud = new Chart(cloudCtx, {
-      type: 'pie',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: data,
-          backgroundColor: state.summary.byCloud && state.summary.byCloud.length > 0
-            ? ['#ff9800', '#3498db', '#3ECF8E', '#2ecc40']
-            : ['#e2e8f0'],
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      options: commonOptions
-    });
-  }
+    // 3. Cloud Provider Distribution (Pie Chart)
+    const cloudCtx = document.getElementById('cloudProviderChart');
+    if (cloudCtx) {
+        if (charts.cloud) charts.cloud.destroy();
+
+        let labels = [];
+        let data = [];
+
+        if (state.summary.byCloud && state.summary.byCloud.length > 0) {
+            state.summary.byCloud.forEach((item) => {
+                const percentage = state.summary.storageUsedBytes > 0 ? (item.totalBytes / state.summary.storageUsedBytes) * 100 : 0;
+                labels.push(item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1));
+                data.push(percentage.toFixed(2));
+            });
+        } else {
+            labels = ['No Files'];
+            data = [100];
+        }
+
+        charts.cloud = new Chart(cloudCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: state.summary.byCloud && state.summary.byCloud.length > 0 ? ['#ff9800', '#3498db', '#3ECF8E', '#2ecc40'] : ['#e2e8f0'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: commonOptions
+        });
+    }
 };
 
 const renderFiles = () => {
-  if (!filesList) return;
+    if (!filesList) return;
 
-  filesList.innerHTML = "";
+    filesList.innerHTML = "";
 
-  if (!state.files.length) {
-    const empty = document.createElement("div");
-    empty.className = "mini";
-    empty.textContent = "No files uploaded yet.";
-    filesList.appendChild(empty);
-    return;
-  }
+    if (!state.files.length) {
+        const empty = document.createElement("div");
+        empty.className = "mini";
+        empty.textContent = "No files uploaded yet.";
+        filesList.appendChild(empty);
+        return;
+    }
 
-  state.files.forEach((file) => {
-    const card = document.createElement("div");
-    card.className = "file-card";
+    state.files.forEach((file) => {
+        const card = document.createElement("div");
+        card.className = "file-card";
 
-    // Add file icon, details, and action buttons wrapper
-    card.innerHTML = `
+        // Add file icon, details, and action buttons wrapper
+        card.innerHTML = `
       <div class="file-card-header">
         <div class="file-icon-large">${getFileIcon(file.originalName)}</div>
         <div class="file-badges">
@@ -504,93 +489,93 @@ const renderFiles = () => {
       </div>
     `;
 
-    filesList.appendChild(card);
-  });
-
-  // Attach event listeners to buttons
-
-  // Delete Button
-  document.querySelectorAll(".file-action").forEach((button) => {
-    button.addEventListener("click", async () => {
-      // Add a simple confirmation dialog before deleting
-      if (confirm('Are you sure you want to delete this file?')) {
-        const tr = button.closest('.file-card');
-        tr.style.opacity = '0.5';
-        try {
-          await deleteFile(button.dataset.id);
-        } catch (error) {
-          console.error(error)
-          tr.style.opacity = '1';
-          alert("Delete failed")
-        }
-      }
+        filesList.appendChild(card);
     });
-  });
 
-  // Rename Button
-  document.querySelectorAll(".rename-btn").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const currentName = button.dataset.name;
-      const newName = prompt("Enter new file name:", currentName);
-      if (newName && newName !== currentName) {
-        try {
-          await renameFile(button.dataset.id, newName);
-        } catch (e) {
-          alert("Error renaming file: " + e.message);
-        }
-      }
+    // Attach event listeners to buttons
+
+    // Delete Button
+    document.querySelectorAll(".file-action").forEach((button) => {
+        button.addEventListener("click", async() => {
+            // Add a simple confirmation dialog before deleting
+            if (confirm('Are you sure you want to delete this file?')) {
+                const tr = button.closest('.file-card');
+                tr.style.opacity = '0.5';
+                try {
+                    await deleteFile(button.dataset.id);
+                } catch (error) {
+                    console.error(error)
+                    tr.style.opacity = '1';
+                    alert("Delete failed")
+                }
+            }
+        });
     });
-  });
 
-  // View Button
-  document.querySelectorAll(".view-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      window.open(button.dataset.url, '_blank');
+    // Rename Button
+    document.querySelectorAll(".rename-btn").forEach((button) => {
+        button.addEventListener("click", async() => {
+            const currentName = button.dataset.name;
+            const newName = prompt("Enter new file name:", currentName);
+            if (newName && newName !== currentName) {
+                try {
+                    await renameFile(button.dataset.id, newName);
+                } catch (e) {
+                    alert("Error renaming file: " + e.message);
+                }
+            }
+        });
     });
-  });
 
-  // Download Button
-  document.querySelectorAll(".download-btn").forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        // Attempt to fetch file directly as a Blob for a seamless native download
-        const response = await fetch(button.dataset.url);
-        if (!response.ok) throw new Error("Network response was not ok");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const fileName = button.closest('.file-card').querySelector('.file-name').textContent;
-
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } catch (e) {
-        console.error("Direct download failed, falling back to new tab window...", e);
-        // Fallback to opening the signed URL in a new tab if CORS occurs
-        window.open(button.dataset.url, '_blank');
-      }
+    // View Button
+    document.querySelectorAll(".view-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+            window.open(button.dataset.url, '_blank');
+        });
     });
-  });
-  const recentFilesContainer = document.getElementById("recent-files");
-  if (recentFilesContainer) {
-    recentFilesContainer.innerHTML = "";
-    const recentFiles = state.files.slice(0, 4);
 
-    if (!recentFiles.length) {
-      const empty = document.createElement("div");
-      empty.className = "mini";
-      empty.textContent = "No recent files.";
-      recentFilesContainer.appendChild(empty);
-    } else {
-      recentFiles.forEach(file => {
-        const item = document.createElement("div");
-        item.className = "recent-item";
-        item.innerHTML = `
+    // Download Button
+    document.querySelectorAll(".download-btn").forEach((button) => {
+        button.addEventListener("click", async() => {
+            try {
+                // Attempt to fetch file directly as a Blob for a seamless native download
+                const response = await fetch(button.dataset.url);
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const fileName = button.closest('.file-card').querySelector('.file-name').textContent;
+
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (e) {
+                console.error("Direct download failed, falling back to new tab window...", e);
+                // Fallback to opening the signed URL in a new tab if CORS occurs
+                window.open(button.dataset.url, '_blank');
+            }
+        });
+    });
+    const recentFilesContainer = document.getElementById("recent-files");
+    if (recentFilesContainer) {
+        recentFilesContainer.innerHTML = "";
+        const recentFiles = state.files.slice(0, 4);
+
+        if (!recentFiles.length) {
+            const empty = document.createElement("div");
+            empty.className = "mini";
+            empty.textContent = "No recent files.";
+            recentFilesContainer.appendChild(empty);
+        } else {
+            recentFiles.forEach(file => {
+                const item = document.createElement("div");
+                item.className = "recent-item";
+                item.innerHTML = `
           <div class="recent-icon">${getFileIcon(file.originalName)}</div>
           <div class="recent-details">
             <div class="recent-name">${file.originalName}</div>
@@ -598,380 +583,380 @@ const renderFiles = () => {
           </div>
           <div class="recent-cloud">${file.cloudService.charAt(0).toUpperCase() + file.cloudService.slice(1)}</div>
         `;
-        recentFilesContainer.appendChild(item);
-      });
+                recentFilesContainer.appendChild(item);
+            });
+        }
     }
-  }
 };
 
-let loadFiles = async () => {
-  const params = new URLSearchParams();
-  if (searchInput && searchInput.value) {
-    params.set("search", searchInput.value);
-  }
-  if (cloudFilter && cloudFilter.value) {
-    params.set("cloud", cloudFilter.value);
-  }
+let loadFiles = async() => {
+    const params = new URLSearchParams();
+    if (searchInput && searchInput.value) {
+        params.set("search", searchInput.value);
+    }
+    if (cloudFilter && cloudFilter.value) {
+        params.set("cloud", cloudFilter.value);
+    }
 
-  const data = await apiRequest(`/files?${params.toString()}`);
-  state.files = data.files;
-  renderFiles();
-  renderAnalytics();
+    const data = await apiRequest(`/files?${params.toString()}`);
+    state.files = data.files;
+    renderFiles();
+    renderAnalytics();
 };
 
-const syncUserWithBackend = async (firebaseUser, bypassRedirect = false) => {
-  const idToken = await firebaseUser.getIdToken();
+const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
+    const idToken = await firebaseUser.getIdToken();
 
-  const response = await fetch(`${API_BASE}/auth/sync`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idToken }),
-  });
+    const response = await fetch(`${API_BASE}/auth/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+    });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || "Sync failed");
-  }
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Sync failed");
+    }
 
-  state.token = idToken;
-  state.user = data.user;
-  if (userName) userName.textContent = state.user.name;
+    state.token = idToken;
+    state.user = data.user;
+    if (userName) userName.textContent = state.user.name;
 
-  await loadStats();
-  await loadFiles();
+    await loadStats();
+    await loadFiles();
 
-  if (!bypassRedirect) {
+    if (!bypassRedirect) {
+        setView("dashboard");
+    }
+};
+
+const login = async(email, password) => {
+    const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
+    await syncUserWithBackend(userCredential.user);
     setView("dashboard");
-  }
 };
 
-const login = async (email, password) => {
-  const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
-  await syncUserWithBackend(userCredential.user);
-  setView("dashboard");
+const register = async(name, email, password) => {
+    const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+    await userCredential.user.updateProfile({ displayName: name });
+    await syncUserWithBackend(userCredential.user);
+    setView("dashboard");
 };
 
-const register = async (name, email, password) => {
-  const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
-  await userCredential.user.updateProfile({ displayName: name });
-  await syncUserWithBackend(userCredential.user);
-  setView("dashboard");
+const uploadFile = async(payload) => {
+    await apiRequest("/files/upload", {
+        method: "POST",
+        body: payload,
+    });
 };
 
-const uploadFile = async (payload) => {
-  await apiRequest("/files/upload", {
-    method: "POST",
-    body: payload,
-  });
+const deleteFile = async(id) => {
+    await apiRequest(`/files/${id}`, { method: "DELETE" });
+    await loadFiles();
+    await loadStats();
 };
 
-const deleteFile = async (id) => {
-  await apiRequest(`/files/${id}`, { method: "DELETE" });
-  await loadFiles();
-  await loadStats();
+const renameFile = async(id, newName) => {
+    await apiRequest(`/files/${id}/rename`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newName }),
+    });
+    await loadFiles();
 };
 
-const renameFile = async (id, newName) => {
-  await apiRequest(`/files/${id}/rename`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ newName }),
-  });
-  await loadFiles();
-};
+loginForm.addEventListener("submit", async(event) => {
+    event.preventDefault();
+    if (loginMessage) loginMessage.textContent = "";
 
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (loginMessage) loginMessage.textContent = "";
+    const formData = new FormData(loginForm);
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-  const formData = new FormData(loginForm);
-  const email = formData.get("email");
-  const password = formData.get("password");
-
-  try {
-    await login(email, password);
-  } catch (err) {
-    if (loginMessage) loginMessage.textContent = err.message || "Login failed";
-  }
+    try {
+        await login(email, password);
+    } catch (err) {
+        if (loginMessage) loginMessage.textContent = err.message || "Login failed";
+    }
 });
 
 loginForm.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    loginForm.dispatchEvent(new Event("submit"));
-  }
+    if (event.key === "Enter") {
+        event.preventDefault();
+        loginForm.dispatchEvent(new Event("submit"));
+    }
 });
 
-registerForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (registerMessage) registerMessage.textContent = "";
+registerForm.addEventListener("submit", async(event) => {
+    event.preventDefault();
+    if (registerMessage) registerMessage.textContent = "";
 
-  const formData = new FormData(registerForm);
-  const name = formData.get("name");
-  const email = formData.get("email");
-  const password = formData.get("password");
+    const formData = new FormData(registerForm);
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-  try {
-    await register(name, email, password);
-  } catch (err) {
-    if (registerMessage) registerMessage.textContent = err.message || "Registration failed";
-  }
+    try {
+        await register(name, email, password);
+    } catch (err) {
+        if (registerMessage) registerMessage.textContent = err.message || "Registration failed";
+    }
 });
 
 registerForm.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    registerForm.dispatchEvent(new Event("submit"));
-  }
+    if (event.key === "Enter") {
+        event.preventDefault();
+        registerForm.dispatchEvent(new Event("submit"));
+    }
 });
 
 if (uploadForm) {
-  const fileInput = document.getElementById("file-upload");
-  const dropzone = document.querySelector(".upload-dropzone");
-  const selectedFileName = document.getElementById("selected-file-name");
+    const fileInput = document.getElementById("file-upload");
+    const dropzone = document.querySelector(".upload-dropzone");
+    const selectedFileName = document.getElementById("selected-file-name");
 
-  if (fileInput && dropzone && selectedFileName) {
-    fileInput.addEventListener("change", (e) => {
-      if (e.target.files.length > 0) {
-        selectedFileName.textContent = `Selected: ${e.target.files[0].name}`;
-      } else {
-        selectedFileName.textContent = "";
-      }
-    });
+    if (fileInput && dropzone && selectedFileName) {
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+                selectedFileName.textContent = `Selected: ${e.target.files[0].name}`;
+            } else {
+                selectedFileName.textContent = "";
+            }
+        });
 
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropzone.addEventListener(eventName, preventDefaults, false);
-    });
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
 
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                selectedFileName.textContent = `Selected: ${files[0].name}`;
+            }
+        });
     }
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+    uploadForm.addEventListener("submit", async(event) => {
+        event.preventDefault();
+        if (uploadMessage) uploadMessage.textContent = "";
+
+        const formData = new FormData(uploadForm);
+
+        try {
+            await uploadFile(formData);
+            if (uploadMessage) {
+                uploadMessage.textContent = "Upload complete.";
+                uploadMessage.className = "form-message success";
+                uploadMessage.style.color = "";
+            }
+            uploadForm.reset();
+            if (selectedFileName) selectedFileName.textContent = "";
+            await loadFiles();
+            await loadStats();
+        } catch (err) {
+            if (uploadMessage) {
+                uploadMessage.textContent = err.message;
+                uploadMessage.className = "form-message error";
+                uploadMessage.style.color = "";
+            }
+        }
     });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
-    });
-
-    dropzone.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length > 0) {
-        fileInput.files = files;
-        selectedFileName.textContent = `Selected: ${files[0].name}`;
-      }
-    });
-  }
-
-  uploadForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (uploadMessage) uploadMessage.textContent = "";
-
-    const formData = new FormData(uploadForm);
-
-    try {
-      await uploadFile(formData);
-      if (uploadMessage) {
-        uploadMessage.textContent = "Upload complete.";
-        uploadMessage.className = "form-message success";
-        uploadMessage.style.color = "";
-      }
-      uploadForm.reset();
-      if (selectedFileName) selectedFileName.textContent = "";
-      await loadFiles();
-      await loadStats();
-    } catch (err) {
-      if (uploadMessage) {
-        uploadMessage.textContent = err.message;
-        uploadMessage.className = "form-message error";
-        uploadMessage.style.color = "";
-      }
-    }
-  });
 }
 
 if (searchInput) {
-  searchInput.addEventListener("input", () => {
-    loadFiles().catch(() => { });
-  });
+    searchInput.addEventListener("input", () => {
+        loadFiles().catch(() => {});
+    });
 }
 
 if (cloudFilter) {
-  cloudFilter.addEventListener("change", () => {
-    loadFiles().catch(() => { });
-  });
+    cloudFilter.addEventListener("change", () => {
+        loadFiles().catch(() => {});
+    });
 }
 
 if (refreshBtn) {
-  refreshBtn.addEventListener("click", () => {
-    loadFiles().catch(() => { });
-  });
+    refreshBtn.addEventListener("click", () => {
+        loadFiles().catch(() => {});
+    });
 }
 
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    await window.auth.signOut();
-    state.token = null;
-    state.user = null;
-    setView("auth");
-  });
+    logoutBtn.addEventListener("click", async() => {
+        await window.auth.signOut();
+        state.token = null;
+        state.user = null;
+        setView("auth");
+    });
 }
 
 const sidebarLogoutBtn = document.getElementById("sidebar-logout-btn");
 if (sidebarLogoutBtn) {
-  sidebarLogoutBtn.addEventListener("click", async () => {
-    await window.auth.signOut();
-    state.token = null;
-    state.user = null;
-    setView("auth");
-  });
+    sidebarLogoutBtn.addEventListener("click", async() => {
+        await window.auth.signOut();
+        state.token = null;
+        state.user = null;
+        setView("auth");
+    });
 }
 
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
-  themeToggle.addEventListener("click", toggleTheme);
+    themeToggle.addEventListener("click", toggleTheme);
 }
 
 // Add nav button click listeners
 document.querySelectorAll(".nav-btn").forEach((button) => {
-  button.addEventListener("click", () => {
-    const view = button.dataset.view;
-    if (view) {
-      setView(view);
-      // Load data for the view if needed
-      if (view === "files" && typeof loadFiles === 'function') {
-        loadFiles().catch(() => { });
-      } else if (view === "analytics" && typeof loadStats === 'function') {
-        loadStats().catch(() => { });
-      }
-    }
-  });
+    button.addEventListener("click", () => {
+        const view = button.dataset.view;
+        if (view) {
+            setView(view);
+            // Load data for the view if needed
+            if (view === "files" && typeof loadFiles === 'function') {
+                loadFiles().catch(() => {});
+            } else if (view === "analytics" && typeof loadStats === 'function') {
+                loadStats().catch(() => {});
+            }
+        }
+    });
 });
 
 // Make dashboard stat cards clickable to act as navigation shortcuts
 const statCardMapping = {
-  "file-count": "files",
-  "storage-used": "analytics",
-  "active-services": "services",
-  "security-score": "security"
+    "file-count": "files",
+    "storage-used": "analytics",
+    "active-services": "services",
+    "security-score": "security"
 };
 
 Object.entries(statCardMapping).forEach(([id, view]) => {
-  const el = document.getElementById(id);
-  if (el && el.closest('.stat-card')) {
-    const card = el.closest('.stat-card');
-    card.style.cursor = 'pointer';
-    card.addEventListener("click", () => {
-      setView(view);
+    const el = document.getElementById(id);
+    if (el && el.closest('.stat-card')) {
+        const card = el.closest('.stat-card');
+        card.style.cursor = 'pointer';
+        card.addEventListener("click", () => {
+            setView(view);
 
-      // Load data for the view if needed
-      if (view === "files" && typeof loadFiles === 'function') {
-        loadFiles().catch(() => { });
-      } else if (view === "analytics" && typeof loadStats === 'function') {
-        loadStats().catch(() => { });
-      }
-    });
-  }
+            // Load data for the view if needed
+            if (view === "files" && typeof loadFiles === 'function') {
+                loadFiles().catch(() => {});
+            } else if (view === "analytics" && typeof loadStats === 'function') {
+                loadStats().catch(() => {});
+            }
+        });
+    }
 });
 
 // Setup all theme toggles for each view
 const themeToggleIds = ["theme-toggle-upload", "theme-toggle-files", "theme-toggle-analytics", "theme-toggle-security", "theme-toggle-services", "theme-toggle-settings"];
 themeToggleIds.forEach(id => {
-  const toggle = document.getElementById(id);
-  if (toggle) {
-    toggle.addEventListener("click", toggleTheme);
-  }
+    const toggle = document.getElementById(id);
+    if (toggle) {
+        toggle.addEventListener("click", toggleTheme);
+    }
 });
 
 // Setup logout buttons for each view
 const logoutBtnIds = ["logout-btn-upload", "logout-btn-files", "logout-btn-analytics", "logout-btn-security", "logout-btn-services", "logout-btn-settings"];
 logoutBtnIds.forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) {
-    btn.addEventListener("click", async () => {
-      await window.auth.signOut();
-      state.token = null;
-      state.user = null;
-      setView("auth");
-    });
-  }
+    const btn = document.getElementById(id);
+    if (btn) {
+        btn.addEventListener("click", async() => {
+            await window.auth.signOut();
+            state.token = null;
+            state.user = null;
+            setView("auth");
+        });
+    }
 });
 
 document.querySelectorAll(".tab").forEach((button) => {
-  button.addEventListener("click", () => setTab(button.dataset.tab));
+    button.addEventListener("click", () => setTab(button.dataset.tab));
 });
 
 document.querySelectorAll(".password-toggle").forEach((button) => {
-  button.addEventListener("click", () => {
-    const targetId = button.dataset.target;
-    const input = document.getElementById(targetId);
+    button.addEventListener("click", () => {
+        const targetId = button.dataset.target;
+        const input = document.getElementById(targetId);
 
-    if (input.type === "password") {
-      input.type = "text";
-      button.style.color = "var(--accent)";
-    } else {
-      input.type = "password";
-      button.style.color = "";
-    }
-  });
+        if (input.type === "password") {
+            input.type = "text";
+            button.style.color = "var(--accent)";
+        } else {
+            input.type = "password";
+            button.style.color = "";
+        }
+    });
 });
 
 // Forgot Password Handler
 const forgotLink = document.querySelector(".forgot-link");
 if (forgotLink) {
-  forgotLink.addEventListener("click", async (e) => {
-    e.preventDefault();
+    forgotLink.addEventListener("click", async(e) => {
+        e.preventDefault();
 
-    // Try to get the email from the login form
-    const loginEmailInput = document.querySelector('#login-form input[name="email"]');
-    let email = loginEmailInput ? loginEmailInput.value.trim() : "";
+        // Try to get the email from the login form
+        const loginEmailInput = document.querySelector('#login-form input[name="email"]');
+        let email = loginEmailInput ? loginEmailInput.value.trim() : "";
 
-    if (!email) {
-      email = prompt("Enter your registered email address:");
-    }
+        if (!email) {
+            email = prompt("Enter your registered email address:");
+        }
 
-    if (!email || !email.includes("@")) {
-      showToast("Please enter a valid email address.", "error");
-      return;
-    }
+        if (!email || !email.includes("@")) {
+            showToast("Please enter a valid email address.", "error");
+            return;
+        }
 
-    try {
-      await window.auth.sendPasswordResetEmail(email);
-      showToast(`Password reset email sent to ${email}. Check your inbox!`, "success", 6000);
-    } catch (err) {
-      console.error("Forgot password error:", err);
-      if (err.code === "auth/user-not-found") {
-        showToast("No account found with that email address.", "error");
-      } else if (err.code === "auth/invalid-email") {
-        showToast("Please enter a valid email address.", "error");
-      } else {
-        showToast("Failed to send reset email. Please try again.", "error");
-      }
-    }
-  });
+        try {
+            await window.auth.sendPasswordResetEmail(email);
+            showToast(`Password reset email sent to ${email}. Check your inbox!`, "success", 6000);
+        } catch (err) {
+            console.error("Forgot password error:", err);
+            if (err.code === "auth/user-not-found") {
+                showToast("No account found with that email address.", "error");
+            } else if (err.code === "auth/invalid-email") {
+                showToast("Please enter a valid email address.", "error");
+            } else {
+                showToast("Failed to send reset email. Please try again.", "error");
+            }
+        }
+    });
 }
 
 // Firebase Auth State Listener
-window.auth.onAuthStateChanged(async (firebaseUser) => {
-  if (firebaseUser) {
-    try {
-      await syncUserWithBackend(firebaseUser, false);
-      // User is already logged in, redirect to dashboard
-    } catch (err) {
-      console.error("Failed to sync user:", err);
-      // If sync fails, don't force them out, just let them see auth view
-      authView.classList.remove("hidden");
-      setView("auth");
+window.auth.onAuthStateChanged(async(firebaseUser) => {
+    if (firebaseUser) {
+        try {
+            await syncUserWithBackend(firebaseUser, false);
+            // User is already logged in, redirect to dashboard
+        } catch (err) {
+            console.error("Failed to sync user:", err);
+            // If sync fails, don't force them out, just let them see auth view
+            authView.classList.remove("hidden");
+            setView("auth");
+        }
+    } else {
+        state.token = null;
+        state.user = null;
+        authView.classList.remove("hidden");
+        setView("auth");
     }
-  } else {
-    state.token = null;
-    state.user = null;
-    authView.classList.remove("hidden");
-    setView("auth");
-  }
 });
 
 // Enhanced Animations & Interactions
@@ -979,280 +964,751 @@ window.auth.onAuthStateChanged(async (firebaseUser) => {
 // Add drag and drop animations to file input
 const fileInputBtn = document.querySelector('.file-input-btn');
 if (fileInputBtn) {
-  const fileInput = fileInputBtn.querySelector('input[type="file"]');
+    const fileInput = fileInputBtn.querySelector('input[type="file"]');
 
-  ['dragenter', 'dragover'].forEach(eventName => {
-    fileInputBtn.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      fileInputBtn.classList.add('dragover');
-      fileInputBtn.style.transform = 'scale(1.05)';
-      fileInputBtn.style.borderColor = 'var(--accent)';
+    ['dragenter', 'dragover'].forEach(eventName => {
+        fileInputBtn.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInputBtn.classList.add('dragover');
+            fileInputBtn.style.transform = 'scale(1.05)';
+            fileInputBtn.style.borderColor = 'var(--accent)';
+        });
     });
-  });
 
-  ['dragleave', 'drop'].forEach(eventName => {
-    fileInputBtn.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      fileInputBtn.classList.remove('dragover');
-      fileInputBtn.style.transform = '';
-      fileInputBtn.style.borderColor = '';
+    ['dragleave', 'drop'].forEach(eventName => {
+        fileInputBtn.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInputBtn.classList.remove('dragover');
+            fileInputBtn.style.transform = '';
+            fileInputBtn.style.borderColor = '';
+        });
     });
-  });
 
-  fileInputBtn.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    if (files.length > 0) {
-      fileInput.files = files;
-      animateFileSelected(fileInputBtn, files[0].name);
-    }
-  });
+    fileInputBtn.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            animateFileSelected(fileInputBtn, files[0].name);
+        }
+    });
 
-  // Animate when file is selected
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      animateFileSelected(fileInputBtn, e.target.files[0].name);
-    }
-  });
+    // Animate when file is selected
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            animateFileSelected(fileInputBtn, e.target.files[0].name);
+        }
+    });
 }
 
 function animateFileSelected(element, fileName) {
-  const span = element.querySelector('span');
-  if (span) {
-    span.textContent = fileName;
-    span.style.animation = 'bounce 0.6s ease';
-    setTimeout(() => {
-      span.style.animation = '';
-    }, 600);
-  }
+    const span = element.querySelector('span');
+    if (span) {
+        span.textContent = fileName;
+        span.style.animation = 'bounce 0.6s ease';
+        setTimeout(() => {
+            span.style.animation = '';
+        }, 600);
+    }
 }
 
 // Add loading spinner during operations
 function showLoading(button) {
-  if (!button) return;
-  button.disabled = true;
-  button.dataset.originalText = button.textContent;
-  button.innerHTML = '<span class="spinner"></span>';
+    if (!button) return;
+    button.disabled = true;
+    button.dataset.originalText = button.textContent;
+    button.innerHTML = '<span class="spinner"></span>';
 }
 
 function hideLoading(button, success = true) {
-  if (!button) return;
-  button.disabled = false;
-  const originalText = button.dataset.originalText || 'Submit';
+    if (!button) return;
+    button.disabled = false;
+    const originalText = button.dataset.originalText || 'Submit';
 
-  if (success) {
-    button.textContent = '✓ Success';
-    button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-  } else {
-    button.textContent = '✗ Failed';
-    button.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-  }
+    if (success) {
+        button.textContent = '✓ Success';
+        button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    } else {
+        button.textContent = '✗ Failed';
+        button.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+    }
 
-  setTimeout(() => {
-    button.textContent = originalText;
-    button.style.background = '';
-  }, 2000);
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '';
+    }, 2000);
 }
 
 // Animate stats counter
 function animateCounter(element, target, duration = 1000) {
-  if (!element) return;
+    if (!element) return;
 
-  let start = 0;
-  const increment = target / (duration / 16);
+    let start = 0;
+    const increment = target / (duration / 16);
 
-  const timer = setInterval(() => {
-    start += increment;
-    if (start >= target) {
-      element.textContent = formatNumber(target);
-      clearInterval(timer);
-    } else {
-      element.textContent = formatNumber(Math.floor(start));
-    }
-  }, 16);
+    const timer = setInterval(() => {
+        start += increment;
+        if (start >= target) {
+            element.textContent = formatNumber(target);
+            clearInterval(timer);
+        } else {
+            element.textContent = formatNumber(Math.floor(start));
+        }
+    }, 16);
 }
 
 function formatNumber(num) {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num.toString();
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
 }
 
 // Staggered animation for lists
 function animateList(listElement) {
-  if (!listElement) return;
+    if (!listElement) return;
 
-  const items = listElement.children;
-  Array.from(items).forEach((item, index) => {
-    item.style.animation = 'none';
-    item.offsetHeight; // Trigger reflow
-    item.style.animation = `slideInUp 0.6s ease backwards ${index * 0.05}s`;
-  });
+    const items = listElement.children;
+    Array.from(items).forEach((item, index) => {
+        item.style.animation = 'none';
+        item.offsetHeight; // Trigger reflow
+        item.style.animation = `slideInUp 0.6s ease backwards ${index * 0.05}s`;
+    });
 }
 
 // Smooth scroll with offset
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  });
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
 });
 
 // Ripple effect removed - user preference
 
 // Observe elements entering viewport for animations
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.animation = 'slideInUp 0.6s ease';
-      observer.unobserve(entry.target);
-    }
-  });
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.animation = 'slideInUp 0.6s ease';
+            observer.unobserve(entry.target);
+        }
+    });
 }, {
-  threshold: 0.1
+    threshold: 0.1
 });
 
 // Observe stat cards and panels
 document.querySelectorAll('.stat-card, .panel, .file-card').forEach(el => {
-  observer.observe(el);
+    observer.observe(el);
 });
 
 // Parallax effect for brand mark
 const brandMark = document.querySelector('.brand-mark');
 if (brandMark) {
-  document.addEventListener('mousemove', (e) => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 20;
-    const y = (e.clientY / window.innerHeight - 0.5) * 20;
-    brandMark.style.transform = `translate(${x}px, ${y}px)`;
-  });
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 20;
+        brandMark.style.transform = `translate(${x}px, ${y}px)`;
+    });
 }
 
 // Add hover sound effect simulation (visual feedback)
 document.querySelectorAll('.nav-btn, button').forEach(element => {
-  element.addEventListener('mouseenter', function () {
-    this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-  });
+    element.addEventListener('mouseenter', function() {
+        this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
 });
 
 // Refresh animations when files list updates
 const originalLoadFiles = loadFiles;
 if (typeof loadFiles === 'function') {
-  loadFiles = async function () {
-    const result = await originalLoadFiles.apply(this, arguments);
-    setTimeout(() => {
-      const filesList = document.getElementById('files-list');
-      if (filesList) animateList(filesList);
-    }, 100);
-    return result;
-  };
+    loadFiles = async function() {
+        const result = await originalLoadFiles.apply(this, arguments);
+        setTimeout(() => {
+            const filesList = document.getElementById('files-list');
+            if (filesList) animateList(filesList);
+        }, 100);
+        return result;
+    };
 }
 
 // Stripe Payment Integration
 document.querySelectorAll('.upgrade-btn').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const plan = e.target.getAttribute('data-plan');
-    const originalText = e.target.innerText;
+    btn.addEventListener('click', async(e) => {
+        const plan = e.target.getAttribute('data-plan');
+        const originalText = e.target.innerText;
 
-    try {
-      e.target.innerText = 'Redirecting...';
-      e.target.disabled = true;
+        try {
+            e.target.innerText = 'Redirecting...';
+            e.target.disabled = true;
 
-      const response = await fetch('http://localhost:4000/api/payments/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ plan })
-      });
+            const response = await fetch('http://localhost:4000/api/payments/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ plan })
+            });
 
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Failed to start checkout process.');
-        e.target.innerText = originalText;
-        e.target.disabled = false;
-      }
-    } catch (error) {
-      console.error('Error starting checkout:', error);
-      alert('Error connecting to payment server.');
-      e.target.innerText = originalText;
-      e.target.disabled = false;
-    }
-  });
+            const data = await response.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert('Failed to start checkout process.');
+                e.target.innerText = originalText;
+                e.target.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error starting checkout:', error);
+            alert('Error connecting to payment server.');
+            e.target.innerText = originalText;
+            e.target.disabled = false;
+        }
+    });
 });
 
 // Razorpay Payment Integration
 document.querySelectorAll('.razorpay-btn').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const plan = e.target.getAttribute('data-plan');
-    const originalText = e.target.innerText;
+    btn.addEventListener('click', async(e) => {
+        const plan = e.target.getAttribute('data-plan');
+        const originalText = e.target.innerText;
 
-    try {
-      e.target.innerText = 'Loading...';
-      e.target.disabled = true;
+        try {
+            e.target.innerText = 'Loading...';
+            e.target.disabled = true;
 
-      const response = await fetch('http://localhost:4000/api/payments/create-razorpay-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan })
-      });
+            const response = await fetch('http://localhost:4000/api/payments/create-razorpay-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan })
+            });
 
-      const data = await response.json();
+            const data = await response.json();
 
-      if (data.error) {
-        alert('Razorpay Checkout Error: ' + data.error);
-        e.target.innerText = originalText;
-        e.target.disabled = false;
-        return;
-      }
+            if (data.error) {
+                alert('Razorpay Checkout Error: ' + data.error);
+                e.target.innerText = originalText;
+                e.target.disabled = false;
+                return;
+            }
 
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: "INR",
-        name: "CloudFusion",
-        description: `${plan} Storage Plan Upgrade`,
-        order_id: data.orderId,
-        handler: function (response) {
-          alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-          // Usually, you would verify this signature on the backend before upgrading the user
-        },
-        prefill: {
-          name: "CloudFusion User",
-          email: "user@example.com",
-          contact: "9999999999"
-        },
-        theme: {
-          color: "#6366f1" // Matches var(--accent)
+            const options = {
+                key: data.keyId,
+                amount: data.amount,
+                currency: "INR",
+                name: "CloudFusion",
+                description: `${plan} Storage Plan Upgrade`,
+                order_id: data.orderId,
+                handler: function(response) {
+                    alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+                    // Usually, you would verify this signature on the backend before upgrading the user
+                },
+                prefill: {
+                    name: "CloudFusion User",
+                    email: "user@example.com",
+                    contact: "9999999999"
+                },
+                theme: {
+                    color: "#6366f1" // Matches var(--accent)
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                alert("Payment Failed: " + response.error.description);
+            });
+
+            rzp.open();
+
+            e.target.innerText = originalText;
+            e.target.disabled = false;
+
+        } catch (error) {
+            console.error('Error starting Razorpay checkout:', error);
+            alert('Error connecting to Razorpay server.');
+            e.target.innerText = originalText;
+            e.target.disabled = false;
         }
-      };
-
-      const rzp = new Razorpay(options);
-      rzp.on('payment.failed', function (response) {
-        alert("Payment Failed: " + response.error.description);
-      });
-
-      rzp.open();
-
-      e.target.innerText = originalText;
-      e.target.disabled = false;
-
-    } catch (error) {
-      console.error('Error starting Razorpay checkout:', error);
-      alert('Error connecting to Razorpay server.');
-      e.target.innerText = originalText;
-      e.target.disabled = false;
-    }
-  });
+    });
 });
 
 console.log('🎨 Enhanced animations loaded!');
+
+// ═══════════════════════════════════════════
+// SETTINGS PAGE — Fully Dynamic & Interactive
+// ═══════════════════════════════════════════
+(function initSettingsPage() {
+    var SETTINGS_KEY = 'cloudfusion_settings';
+
+    function saveSettings(partial) {
+        var cur = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+        Object.assign(cur, partial);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(cur));
+    }
+
+    function loadSettings() {
+        return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    }
+    var saved = loadSettings();
+
+    function shakeElement(el) {
+        if (!el) return;
+        el.style.animation = 'stgShake 0.4s ease';
+        el.addEventListener('animationend', function() { el.style.animation = ''; }, { once: true });
+    }
+
+    function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+    // ── Tab Switching with Animation ──
+    var stgTabs = document.querySelectorAll('.stg-tab');
+    var stgSections = document.querySelectorAll('.stg-section');
+
+    stgTabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var target = tab.dataset.stg;
+            stgTabs.forEach(function(t) { t.classList.remove('active'); });
+            stgSections.forEach(function(s) {
+                s.classList.remove('active');
+                s.style.opacity = '0';
+                s.style.transform = 'translateY(12px)';
+            });
+            tab.classList.add('active');
+            var section = document.getElementById('stg-' + target);
+            if (section) {
+                section.classList.add('active');
+                requestAnimationFrame(function() {
+                    section.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                });
+            }
+            saveSettings({ lastTab: target });
+        });
+    });
+
+    // Restore last tab
+    if (saved.lastTab) {
+        var savedTab = document.querySelector('.stg-tab[data-stg="' + saved.lastTab + '"]');
+        if (savedTab) savedTab.click();
+    }
+
+    // ── Sync Profile from Firebase ──
+    function syncSettingsProfile() {
+        var user = (state && state.user) ? state.user : null;
+        var firebaseUser = window.auth && window.auth.currentUser;
+        var nameField = document.getElementById('stg-name');
+        var emailField = document.getElementById('stg-email');
+        var displayName = document.getElementById('stg-display-name');
+        var displayEmail = document.getElementById('stg-display-email');
+        var avatarPreview = document.getElementById('stg-avatar-preview');
+
+        var name = (user && user.name) || (firebaseUser && firebaseUser.displayName) || saved.profileName || '';
+        var email = (user && user.email) || (firebaseUser && firebaseUser.email) || saved.profileEmail || '';
+
+        if (nameField) nameField.value = name;
+        if (emailField) emailField.value = email;
+        if (displayName) displayName.textContent = name || 'User';
+        if (displayEmail) displayEmail.textContent = email || 'user@email.com';
+
+        if (avatarPreview && !avatarPreview.querySelector('img')) {
+            if (saved.avatarData) {
+                avatarPreview.innerHTML = '<img src="' + saved.avatarData + '" alt="Avatar" />';
+            } else if (name) {
+                var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+                avatarPreview.innerHTML = '<span style="font-size:24px;font-weight:800;color:var(--accent)">' + initials + '</span>';
+            }
+        }
+
+        var phoneField = document.getElementById('stg-phone');
+        if (phoneField && saved.profilePhone) phoneField.value = saved.profilePhone;
+        var tzField = document.getElementById('stg-timezone');
+        if (tzField && saved.profileTimezone) tzField.value = saved.profileTimezone;
+    }
+
+    var settingsNavBtn = document.querySelector('.nav-btn[data-view="settings"]');
+    if (settingsNavBtn) settingsNavBtn.addEventListener('click', function() {
+        syncSettingsProfile();
+        syncStorageBar();
+    });
+    syncSettingsProfile();
+
+    // ── Avatar Upload ──
+    var avatarBtn = document.getElementById('stg-change-avatar');
+    if (avatarBtn) {
+        avatarBtn.addEventListener('click', function() {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB', 'error'); return; }
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    var avPrev = document.getElementById('stg-avatar-preview');
+                    if (avPrev) {
+                        avPrev.innerHTML = '<img src="' + ev.target.result + '" alt="Avatar" />';
+                        avPrev.style.animation = 'stgPulse 0.5s ease';
+                        setTimeout(function() { avPrev.style.animation = ''; }, 500);
+                    }
+                    saveSettings({ avatarData: ev.target.result });
+                    showToast('Avatar updated!', 'success');
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        });
+    }
+
+    // ── Save Profile ──
+    var saveProfileBtn = document.getElementById('stg-save-profile');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', function() {
+            var nameEl = document.getElementById('stg-name');
+            var emailEl = document.getElementById('stg-email');
+            var phoneEl = document.getElementById('stg-phone');
+            var tzEl = document.getElementById('stg-timezone');
+            var name = nameEl ? nameEl.value : '';
+            var email = emailEl ? emailEl.value : '';
+            var phone = phoneEl ? phoneEl.value : '';
+            var timezone = tzEl ? tzEl.value : '';
+
+            if (!name.trim()) { showToast('Name cannot be empty', 'error'); return; }
+            if (!email.trim() || email.indexOf('@') === -1) { showToast('Enter a valid email', 'error'); return; }
+
+            var dn = document.getElementById('stg-display-name');
+            var de = document.getElementById('stg-display-email');
+            if (dn) dn.textContent = name;
+            if (de) de.textContent = email;
+            if (userName) userName.textContent = name;
+
+            var avPrev = document.getElementById('stg-avatar-preview');
+            if (avPrev && !saved.avatarData) {
+                var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+                avPrev.innerHTML = '<span style="font-size:24px;font-weight:800;color:var(--accent)">' + initials + '</span>';
+            }
+
+            saveSettings({ profileName: name, profileEmail: email, profilePhone: phone, profileTimezone: timezone });
+
+            saveProfileBtn.textContent = 'Saved \u2713';
+            saveProfileBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+            setTimeout(function() {
+                saveProfileBtn.textContent = 'Save Changes';
+                saveProfileBtn.style.background = '';
+            }, 2000);
+            showToast('Profile saved successfully!', 'success');
+        });
+    }
+
+    // ── Change Password Link → Jump to Security tab ──
+    var cpLink = document.getElementById('stg-change-password-link');
+    if (cpLink) {
+        cpLink.addEventListener('click', function() {
+            var secTab = document.querySelector('.stg-tab[data-stg="security"]');
+            if (secTab) secTab.click();
+            setTimeout(function() {
+                var curPass = document.getElementById('stg-cur-pass');
+                if (curPass) curPass.focus();
+            }, 400);
+        });
+    }
+
+    // ── 2FA Toggle (persisted) ──
+    var tfa = document.getElementById('stg-2fa-toggle');
+    if (tfa) {
+        if (saved.twoFactorEnabled) tfa.checked = true;
+        tfa.addEventListener('change', function() {
+            saveSettings({ twoFactorEnabled: tfa.checked });
+            showToast(tfa.checked ? 'Two-Factor Authentication enabled' : 'Two-Factor Authentication disabled', tfa.checked ? 'success' : 'info');
+        });
+    }
+
+    // ── Password Strength Meter ──
+    var newPassInput = document.getElementById('stg-new-pass');
+    if (newPassInput) {
+        if (!document.getElementById('stg-pass-strength')) {
+            var bar = document.createElement('div');
+            bar.id = 'stg-pass-strength';
+            bar.className = 'stg-pass-strength';
+            bar.innerHTML = '<div class="stg-pass-strength-fill" id="stg-pass-strength-fill"></div><span class="stg-pass-strength-label" id="stg-pass-strength-label"></span>';
+            newPassInput.parentNode.appendChild(bar);
+        }
+        newPassInput.addEventListener('input', function() {
+            var val = newPassInput.value;
+            var fill = document.getElementById('stg-pass-strength-fill');
+            var label = document.getElementById('stg-pass-strength-label');
+            if (!fill || !label) return;
+            var score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            var levels = [
+                { w: '0%', color: '#94a3b8', text: '' },
+                { w: '20%', color: '#ef4444', text: 'Weak' },
+                { w: '40%', color: '#f97316', text: 'Fair' },
+                { w: '60%', color: '#eab308', text: 'Good' },
+                { w: '80%', color: '#22c55e', text: 'Strong' },
+                { w: '100%', color: '#059669', text: 'Excellent' }
+            ];
+            var lv = levels[score];
+            fill.style.width = lv.w;
+            fill.style.background = lv.color;
+            label.textContent = lv.text;
+            label.style.color = lv.color;
+        });
+    }
+
+    // ── Change Password ──
+    var updatePassBtn = document.getElementById('stg-update-pass');
+    var passMsg = document.getElementById('stg-pass-msg');
+    if (updatePassBtn) {
+        updatePassBtn.addEventListener('click', function() {
+            var curEl = document.getElementById('stg-cur-pass');
+            var npEl = document.getElementById('stg-new-pass');
+            var cpEl = document.getElementById('stg-confirm-pass');
+            var cur = curEl ? curEl.value : '';
+            var np = npEl ? npEl.value : '';
+            var cp = cpEl ? cpEl.value : '';
+            if (!cur || !np || !cp) {
+                if (passMsg) {
+                    passMsg.textContent = 'Please fill all fields.';
+                    passMsg.className = 'stg-msg stg-msg-error';
+                }
+                return;
+            }
+            if (np !== cp) {
+                if (passMsg) {
+                    passMsg.textContent = 'New passwords do not match.';
+                    passMsg.className = 'stg-msg stg-msg-error';
+                }
+                shakeElement(cpEl);
+                return;
+            }
+            if (np.length < 6) {
+                if (passMsg) {
+                    passMsg.textContent = 'Password must be at least 6 characters.';
+                    passMsg.className = 'stg-msg stg-msg-error';
+                }
+                return;
+            }
+            if (passMsg) {
+                passMsg.textContent = 'Password updated successfully!';
+                passMsg.className = 'stg-msg stg-msg-success';
+            }
+            updatePassBtn.textContent = 'Updated \u2713';
+            updatePassBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+            setTimeout(function() {
+                updatePassBtn.textContent = 'Update Password';
+                updatePassBtn.style.background = '';
+            }, 2500);
+            if (curEl) curEl.value = '';
+            if (npEl) npEl.value = '';
+            if (cpEl) cpEl.value = '';
+            var fill = document.getElementById('stg-pass-strength-fill');
+            var label = document.getElementById('stg-pass-strength-label');
+            if (fill) fill.style.width = '0%';
+            if (label) label.textContent = '';
+            showToast('Password updated!', 'success');
+        });
+    }
+
+    // ── Revoke Device (animated removal) ──
+    document.querySelectorAll('.stg-btn-danger-sm[data-device]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var device = btn.dataset.device;
+            var item = btn.closest('.stg-device-item');
+            if (item) {
+                item.style.transition = 'all 0.4s ease';
+                item.style.transform = 'translateX(30px)';
+                item.style.opacity = '0';
+                setTimeout(function() {
+                    item.style.height = item.offsetHeight + 'px';
+                    requestAnimationFrame(function() {
+                        item.style.height = '0';
+                        item.style.padding = '0';
+                        item.style.margin = '0';
+                        item.style.overflow = 'hidden';
+                    });
+                    setTimeout(function() { item.remove(); }, 350);
+                }, 350);
+            }
+            showToast('Device "' + device + '" session revoked', 'success');
+        });
+    });
+
+    // ── Cloud Provider Connect / Disconnect ──
+    document.querySelectorAll('.stg-provider-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var provider = btn.dataset.provider;
+            var card = btn.closest('.stg-provider-card');
+            var statusEl = document.getElementById('stg-' + provider + '-status');
+            var isConnected = statusEl && statusEl.textContent.trim() === 'Connected';
+
+            if (isConnected) {
+                if (statusEl) {
+                    statusEl.textContent = 'Not Connected';
+                    statusEl.className = 'stg-badge stg-badge-muted';
+                }
+                btn.textContent = 'Connect';
+                btn.className = 'stg-btn-primary stg-provider-toggle';
+                btn.style.width = '100%';
+                btn.style.marginTop = '10px';
+                if (card) card.classList.remove('stg-provider-connected');
+                saveSettings({
+                    ['provider_' + provider]: false
+                });
+                showToast(capitalize(provider) + ' disconnected', 'info');
+            } else {
+                var keyInput = card ? card.querySelector('.stg-api-key') : null;
+                if (keyInput && !keyInput.value.trim()) {
+                    showToast('Please enter an API key / ID first', 'error');
+                    shakeElement(keyInput);
+                    if (keyInput.focus) keyInput.focus();
+                    return;
+                }
+                btn.disabled = true;
+                btn.innerHTML = '<span class="stg-spinner"></span> Connecting...';
+                setTimeout(function() {
+                    btn.disabled = false;
+                    if (statusEl) {
+                        statusEl.textContent = 'Connected';
+                        statusEl.className = 'stg-badge stg-badge-ok';
+                    }
+                    btn.textContent = 'Disconnect';
+                    btn.className = 'stg-btn-danger-sm stg-provider-toggle';
+                    btn.style.width = '100%';
+                    btn.style.marginTop = '10px';
+                    if (card) card.classList.add('stg-provider-connected');
+                    saveSettings({
+                        ['provider_' + provider]: true
+                    });
+                    showToast(capitalize(provider) + ' connected successfully!', 'success');
+                }, 1200);
+            }
+        });
+    });
+
+    // ── API Key visibility toggles ──
+    document.querySelectorAll('.stg-api-key').forEach(function(input) {
+        if (input.type !== 'password') return;
+        var wrapper = input.parentNode;
+        if (!wrapper.querySelector('.stg-eye-btn')) {
+            var eyeBtn = document.createElement('button');
+            eyeBtn.type = 'button';
+            eyeBtn.className = 'stg-eye-btn';
+            eyeBtn.title = 'Show/hide';
+            eyeBtn.innerHTML = '\uD83D\uDC41';
+            eyeBtn.addEventListener('click', function() {
+                input.type = input.type === 'password' ? 'text' : 'password';
+                eyeBtn.innerHTML = input.type === 'password' ? '\uD83D\uDC41' : '\uD83D\uDE48';
+            });
+            wrapper.style.position = 'relative';
+            wrapper.appendChild(eyeBtn);
+        }
+    });
+
+    // ── Dark Mode Toggle (bidirectional sync) ──
+    var darkToggle = document.getElementById('stg-dark-toggle');
+    if (darkToggle) {
+        darkToggle.checked = document.body.classList.contains('dark-theme');
+        darkToggle.addEventListener('change', function() {
+            toggleTheme();
+            darkToggle.checked = document.body.classList.contains('dark-theme');
+        });
+        var observer = new MutationObserver(function() {
+            darkToggle.checked = document.body.classList.contains('dark-theme');
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // ── Layout Selection (persisted) ──
+    document.querySelectorAll('.stg-layout-opt').forEach(function(opt) {
+        if (saved.layout === opt.dataset.layout) {
+            document.querySelectorAll('.stg-layout-opt').forEach(function(o) { o.classList.remove('active'); });
+            opt.classList.add('active');
+        }
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.stg-layout-opt').forEach(function(o) { o.classList.remove('active'); });
+            opt.classList.add('active');
+            saveSettings({ layout: opt.dataset.layout });
+            showToast('Layout set to "' + opt.dataset.layout + '"', 'info');
+        });
+    });
+
+    // ── Default Provider (persisted) ──
+    var defProvider = document.getElementById('stg-default-provider');
+    if (defProvider) {
+        if (saved.defaultProvider) defProvider.value = saved.defaultProvider;
+        defProvider.addEventListener('change', function() {
+            saveSettings({ defaultProvider: defProvider.value });
+            showToast('Default provider: ' + capitalize(defProvider.value), 'info');
+        });
+    }
+
+    // ── All Toggles (persist + visual feedback) ──
+    var allToggles = ['stg-email-notif', 'stg-upload-notif', 'stg-security-notif', 'stg-storage-notif', 'stg-auto-backup', 'stg-versioning'];
+    allToggles.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (saved['toggle_' + id] !== undefined) el.checked = saved['toggle_' + id];
+        el.addEventListener('change', function() {
+            var row = el.closest('.stg-toggle-row');
+            var titleEl = row ? row.querySelector('.stg-toggle-title') : null;
+            var title = titleEl ? titleEl.textContent : 'Setting';
+            saveSettings({
+                ['toggle_' + id]: el.checked
+            });
+            if (row) {
+                row.style.transition = 'background 0.3s';
+                row.style.background = el.checked ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.04)';
+                setTimeout(function() { row.style.background = ''; }, 1500);
+            }
+            showToast(title + ' ' + (el.checked ? 'enabled' : 'disabled'), el.checked ? 'success' : 'info');
+        });
+    });
+
+    // ── Language (persisted) ──
+    var langSelect = document.getElementById('stg-language');
+    if (langSelect) {
+        if (saved.language) langSelect.value = saved.language;
+        langSelect.addEventListener('change', function() {
+            saveSettings({ language: langSelect.value });
+            showToast('Language changed to ' + langSelect.value, 'info');
+        });
+    }
+
+    // ── Storage Bar Sync ──
+    function syncStorageBar() {
+        if (!state || !state.summary) return;
+        var used = state.summary.storageUsedMB || 0;
+        var max = 5 * 1024;
+        var pct = Math.min((used / max) * 100, 100);
+        var usedEl = document.getElementById('stg-used');
+        var fillEl = document.getElementById('stg-storage-fill');
+        if (usedEl) usedEl.textContent = used < 1024 ? used.toFixed(1) + ' MB' : (used / 1024).toFixed(2) + ' GB';
+        if (fillEl) {
+            fillEl.style.width = '0%';
+            requestAnimationFrame(function() {
+                fillEl.style.transition = 'width 1.2s ease';
+                fillEl.style.width = pct + '%';
+            });
+        }
+    }
+    syncStorageBar();
+
+    // ── Header buttons ──
+    var stgThemeBtn = document.getElementById('theme-toggle-settings');
+    if (stgThemeBtn) stgThemeBtn.addEventListener('click', toggleTheme);
+    var stgLogoutBtn = document.getElementById('logout-btn-settings');
+    if (stgLogoutBtn) stgLogoutBtn.addEventListener('click', function() { if (window.auth) window.auth.signOut(); });
+})();
