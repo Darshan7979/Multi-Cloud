@@ -1,0 +1,42 @@
+/* ── UNIQUE LOGOUT BUTTON STYLING ──────────────────────────── */
+.btn-logout-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(244, 63, 94, 0.1) 100%);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: var(--text-md);
+    /* Increased font size */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);
+}
+
+.btn-logout-header:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%);
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.1);
+}
+
+.btn-logout-header:active {
+    transform: translateY(0);
+}
+
+body.dark-theme .btn-logout-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+body.dark-theme .btn-logout-header:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(244, 63, 94, 0.2) 100%);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.4);
+}

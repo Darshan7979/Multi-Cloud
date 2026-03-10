@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="stylish-additions.css" />
   <link rel="stylesheet" href="premium-ui.css" />
   <link rel="stylesheet" href="security-styles.css" />
+  <link rel="stylesheet" href="logout-styles.css" />
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -104,7 +105,8 @@
           <span id="security-bar"></span>
         </div>
       </div>
-      <button id="sidebar-logout-btn" class="nav-btn logout-btn" style="margin-top: auto;">
+      <button id="sidebar-logout-btn" class="btn-logout-header"
+        style="margin-top: auto; justify-content: flex-start; padding: 13px 18px; width: 100%;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
           <polyline points="16 17 21 12 16 7"></polyline>
@@ -153,7 +155,7 @@
               </label>
               <a href="#" class="forgot-link">Forgot password?</a>
             </div>
-            <button type="submit" class="primary">Sign In</button>
+            <button type="submit" class="primary">Login</button>
             <p class="form-message" id="login-message"></p>
           </form>
 
@@ -178,7 +180,7 @@
               </div>
             </label>
             <div class="password-hint">Use at least 8 characters with letters and numbers</div>
-            <button type="submit" class="primary">Create Account</button>
+            <button type="submit" class="primary">Register</button>
             <p class="form-message" id="register-message"></p>
           </form>
 
@@ -233,7 +235,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
 
@@ -359,7 +361,6 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-upload" class="ghost">Logout</button>
           </div>
         </header>
 
@@ -394,8 +395,10 @@
               <h3 class="settings-title">Upload Settings</h3>
 
               <div class="form-group">
-                <label for="upload-cloud" class="font-bold">Select Cloud Service</label>
-                <select id="upload-cloud" name="cloudService" required class="form-select glass-input">
+                <label for="upload-cloud" class="font-bold" style="display: block; margin-bottom: 8px;">Select Cloud
+                  Service</label>
+                <select id="upload-cloud" name="cloudService" required class="form-control rounded-pill"
+                  style="width: 100%; border-radius: 12px; padding: 10px 14px;">
                   <option value="firebase">Google Firebase</option>
                   <option value="cloudinary">Cloudinary</option>
                   <option value="aws">AWS S3</option>
@@ -403,21 +406,22 @@
                 </select>
               </div>
 
-              <div class="form-group">
-                <label class="font-bold">File Privacy</label>
+              <div class="form-group" style="margin-top: 16px;">
+                <label class="font-bold" style="display: block; margin-bottom: 8px;">File Privacy</label>
                 <div class="select-wrapper">
-                  <select name="privacy" required class="form-control rounded-pill">
+                  <select name="privacy" required class="form-control rounded-pill"
+                    style="width: 100%; border-radius: 12px; padding: 10px 14px;">
                     <option value="private">Private</option>
                     <option value="public">Public</option>
                   </select>
                 </div>
               </div>
 
-              <div class="checkbox-container">
-                <label class="custom-checkbox">
-                  <input type="checkbox" name="encrypt" checked disabled />
-                  <span class="checkmark"></span>
-                  <span class="checkbox-text">Auto-encrypt files (AES-256)</span>
+              <div class="checkbox-container" style="margin-top: 20px;">
+                <label class="custom-checkbox" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" name="encrypt" checked disabled
+                    style="width: 18px; height: 18px; cursor: not-allowed; accent-color: #6366f1;" />
+                  <span class="checkbox-text" style="line-height: 1;">Auto-encrypt files (AES-256)</span>
                 </label>
               </div>
             </div>
@@ -467,7 +471,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-files" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
         <div class="files-section">
@@ -517,7 +521,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-analytics" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
         <div class="stats-grid">
@@ -601,7 +605,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-security" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
         <div class="security-grid">
@@ -759,7 +763,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-services" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
         <div class="pricing-container">
@@ -826,7 +830,7 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> Priority Support</li>
               </ul>
-              <div class="payment-options" style="display: flex; gap: 8px; width: 100%; margin-top: auto;">
+              <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
                 <button class="pricing-btn upgrade upgrade-btn" data-plan="Pro"
                   style="flex: 1; padding: 10px 0;">Stripe</button>
                 <button class="pricing-btn outline razorpay-btn" data-plan="Pro"
@@ -861,7 +865,7 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg> 24/7 Dedicated Support</li>
               </ul>
-              <div class="payment-options" style="display: flex; gap: 8px; width: 100%; margin-top: auto;">
+              <div class="payment-options" style="display: flex; gap: 16px; width: 100%; margin-top: auto;">
                 <button class="pricing-btn upgrade upgrade-btn" data-plan="Enterprise"
                   style="flex: 1; padding: 10px 0;">Stripe</button>
                 <button class="pricing-btn outline razorpay-btn" data-plan="Enterprise"
@@ -898,7 +902,7 @@
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </button>
-            <button id="logout-btn-settings" class="ghost">Logout</button>
+            <!-- Logout handled by sidebar -->
           </div>
         </header>
         <div class="panel">

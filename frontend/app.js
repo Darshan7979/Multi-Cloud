@@ -776,7 +776,8 @@ if (uploadForm) {
       await uploadFile(formData);
       if (uploadMessage) {
         uploadMessage.textContent = "Upload complete.";
-        uploadMessage.style.color = "var(--success)";
+        uploadMessage.className = "form-message success";
+        uploadMessage.style.color = "";
       }
       uploadForm.reset();
       if (selectedFileName) selectedFileName.textContent = "";
@@ -785,7 +786,8 @@ if (uploadForm) {
     } catch (err) {
       if (uploadMessage) {
         uploadMessage.textContent = err.message;
-        uploadMessage.style.color = "var(--danger)";
+        uploadMessage.className = "form-message error";
+        uploadMessage.style.color = "";
       }
     }
   });

@@ -137,19 +137,19 @@ input:checked+.toggle-slider:before {
 
 /* Dark Theme specific additions for security */
 body.dark-theme .toggle-slider {
-    background-color: rgba(63, 63, 70, 0.8);
+    background-color: var(--surface-elevated);
 }
 
 body.dark-theme .session-item {
-    background: rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(129, 140, 248, 0.05);
+    border-color: var(--stroke);
 }
 
 body.dark-theme .session-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(129, 140, 248, 0.08);
 }
 
 body.dark-theme .session-icon {
-    background: #27272a;
-    color: #a1a1aa;
+    background: var(--surface-elevated);
+    color: var(--ink-light);
 }
