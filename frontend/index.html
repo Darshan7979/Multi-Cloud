@@ -16,6 +16,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
     <script src="firebase-config.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -104,6 +105,15 @@
                     <span id="security-bar"></span>
                 </div>
             </div>
+            <a id="sidebar-terms-link" class="nav-btn sidebar-legal-link" href="terms-and-conditions.html" target="_blank" rel="noopener noreferrer" data-tooltip="Terms &amp; Conditions">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="8" y1="13" x2="16" y2="13"></line>
+                    <line x1="8" y1="17" x2="16" y2="17"></line>
+                </svg>
+                <span>Terms &amp; Conditions</span>
+            </a>
             <button id="sidebar-logout-btn" class="btn-logout-header" style="margin-top: auto; justify-content: flex-start; padding: 13px 18px; width: 100%;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -205,6 +215,11 @@
                             <span>Real-time Analytics</span>
                         </div>
                     </div>
+
+                    <p class="auth-legal">
+                        By continuing, you agree to our
+                        <a href="terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>.
+                    </p>
                 </div>
             </section>
 
@@ -215,6 +230,7 @@
                         <p class="muted">Here's your cloud storage overview</p>
                     </div>
                     <div class="header-actions">
+                        <a class="ghost dashboard-terms-link" href="terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a>
                         <button id="theme-toggle" class="icon-btn" title="Toggle theme">
               <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
@@ -297,13 +313,18 @@
                 </div>
 
                 <div class="panel storage-panel full-width-panel" style="margin-top: 20px;">
-                    <h3>Storage Usage</h3>
+                    <div class="storage-head">
+                        <h3>Storage Usage</h3>
+                        <div class="storage-percent"><span id="storage-percent">--</span>%</div>
+                    </div>
                     <div class="storage-info">
-                        <div class="storage-used-text"><span id="storage-used-mb">--</span> used</div>
+                        <div class="storage-used-text"><span id="storage-used-mb">--</span> of 5 GB used</div>
                         <div class="storage-bar">
                             <div class="storage-fill" id="storage-fill"></div>
                         </div>
-                        <div class="storage-percent"><span id="storage-percent">--</span>%</div>
+                    </div>
+                    <div class="storage-by-cloud" id="storage-by-cloud">
+                        <!-- Dynamically populated -->
                     </div>
                 </div>
 
@@ -392,8 +413,8 @@
                                 <label for="upload-cloud" class="font-bold" style="display: block; margin-bottom: 8px;">Select Cloud
                   Service</label>
                                 <select id="upload-cloud" name="cloudService" required class="form-control rounded-pill" style="width: 100%; border-radius: 12px; padding: 10px 14px;">
-                  <option value="firebase">Google Firebase</option>
-                  <option value="cloudinary">Cloudinary</option>
+                  <option value="firebase">Google Firebase (auto-fallback enabled)</option>
+                  <option value="cloudinary" selected>Cloudinary</option>
                   <option value="aws">AWS S3</option>
                   <option value="supabase">Supabase Storage</option>
                 </select>
@@ -465,7 +486,7 @@
                 </header>
                 <div class="files-section">
                     <div class="section-head">
-                        <h3>All Files</h3>
+                        <h3 id="files-heading-files">All Files</h3>
                         <div class="filters">
                             <input type="text" id="search-input-files" placeholder="Search files" />
                             <select id="cloud-filter-files">
@@ -475,6 +496,7 @@
                 <option value="aws">Amazon S3</option>
                 <option value="supabase">Supabase</option>
               </select>
+                            <button id="recycle-toggle-files" class="ghost">Recycle Bin</button>
                             <button id="refresh-btn-files" class="ghost">↻ Refresh</button>
                         </div>
                     </div>
@@ -1105,7 +1127,7 @@
                             <div class="stg-field" style="max-width:360px;">
                                 <label>Default Cloud Provider</label>
                                 <select id="stg-default-provider">
-                  <option value="firebase">Firebase Storage</option><option value="cloudinary">Cloudinary</option><option value="aws">AWS S3</option><option value="supabase">Supabase Storage</option>
+                  <option value="firebase">Firebase Storage (auto-fallback enabled)</option><option value="cloudinary" selected>Cloudinary</option><option value="aws">AWS S3</option><option value="supabase">Supabase Storage</option>
                 </select>
                             </div>
                             <div class="stg-divider"></div>
@@ -1197,7 +1219,7 @@
                             <div class="stg-divider"></div>
                             <div class="stg-field" style="max-width:280px;">
                                 <label>Language</label>
-                                <select id="stg-language"><option>English</option><option>Hindi</option><option>Spanish</option><option>French</option><option>German</option><option>Japanese</option></select>
+                                <select id="stg-language"><option value="en">English</option><option value="hi">Hindi</option><option value="mr">Marathi</option></select>
                             </div>
                         </div>
                     </div>
@@ -1206,6 +1228,28 @@
             </section>
         </main>
     </div>
+
+    <!-- Change Password Modal -->
+    <div class="stg-modal-overlay" id="stg-password-modal">
+        <div class="stg-modal">
+            <div class="stg-modal-header">
+                <h3>Change Password</h3>
+                <button class="stg-modal-close" id="stg-modal-close">&times;</button>
+            </div>
+            <div class="stg-modal-body">
+                <div class="stg-field"><label>Current Password</label><input type="password" id="stg-modal-cur-pass" placeholder="Enter current password" /></div>
+                <div class="stg-field"><label>New Password</label><input type="password" id="stg-modal-new-pass" placeholder="Enter new password" /></div>
+                <div class="stg-field"><label>Confirm New Password</label><input type="password" id="stg-modal-confirm-pass" placeholder="Confirm new password" /></div>
+                <div id="stg-modal-pass-msg" class="stg-msg"></div>
+            </div>
+            <div class="stg-modal-footer">
+                <button class="stg-btn-ghost" id="stg-modal-cancel">Cancel</button>
+                <button class="stg-btn-primary" id="stg-modal-submit">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Security Score Card (injected by JS into stg-profile) -->
 
 </body>
 

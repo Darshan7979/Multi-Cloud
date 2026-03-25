@@ -29,9 +29,34 @@ const state = {
     user: null,
     files: [],
     summary: null,
+    recycleBinMode: false,
 };
 
 let charts = {};
+
+const MAX_STORAGE_MB = 5 * 1024;
+const CLOUD_META = {
+    firebase: { label: "Firebase", color: "#f59e0b", icon: "F" },
+    cloudinary: { label: "Cloudinary", color: "#2563eb", icon: "C" },
+    supabase: { label: "Supabase", color: "#22c55e", icon: "S" },
+    aws: { label: "AWS S3", color: "#f97316", icon: "A" },
+    mongodb: { label: "MongoDB", color: "#16a34a", icon: "M" },
+    other: { label: "Other", color: "#6366f1", icon: "O" }
+};
+
+const formatCloudName = (cloudKey) => {
+    const key = (cloudKey || "other").toLowerCase();
+    return (CLOUD_META[key] || CLOUD_META.other).label;
+};
+
+const formatStorageSize = (bytes) => {
+    const safeBytes = Math.max(Number(bytes) || 0, 0);
+    const mb = safeBytes / (1024 * 1024);
+    if (mb < 1024) {
+        return `${mb.toFixed(1)} MB`;
+    }
+    return `${(mb / 1024).toFixed(2)} GB`;
+};
 
 // ── Toast Notifications ──────────────────────────────────
 function showToast(message, type = 'info', duration = 4000) {
@@ -102,8 +127,10 @@ const registerMessage = document.getElementById("register-message");
 const uploadForm = document.getElementById("upload-form-upload");
 const uploadMessage = document.getElementById("upload-message-upload");
 const filesList = document.getElementById("files-list-files");
+const filesHeading = document.getElementById("files-heading-files");
 const searchInput = document.getElementById("search-input-files");
 const cloudFilter = document.getElementById("cloud-filter-files");
+const recycleToggleBtn = document.getElementById("recycle-toggle-files");
 const refreshBtn = document.getElementById("refresh-btn-files");
 const logoutBtn = document.getElementById("logout-btn");
 const userName = document.getElementById("user-name");
@@ -181,7 +208,10 @@ const apiRequest = async(path, options = {}) => {
 
     const data = await response.json();
     if (!response.ok) {
-        throw new Error(data.message || "Request failed");
+        const error = new Error(data.message || "Request failed");
+        error.code = data.code || null;
+        error.status = response.status;
+        throw error;
     }
 
     return data;
@@ -190,6 +220,8 @@ const apiRequest = async(path, options = {}) => {
 const loadStats = async() => {
     const summary = await apiRequest("/analytics/summary");
     state.summary = summary;
+    const totalUsedBytes = Number(summary.storageUsedBytes || 0);
+    const totalUsedMB = Number(summary.storageUsedMB || (totalUsedBytes / (1024 * 1024)));
 
     // Update old stats
     if (fileCount) fileCount.textContent = summary.fileCount;
@@ -211,24 +243,65 @@ const loadStats = async() => {
 
     // Update new dashboard elements
     if (storageUsed) {
-        storageUsed.textContent = `${summary.storageUsedMB} MB`;
+        storageUsed.textContent = `${totalUsedMB.toFixed(1)} MB`;
     }
     const storageMbEl = document.getElementById("storage-used-mb");
     if (storageMbEl) {
-        const parent = storageMbEl.parentElement;
-        if (parent) {
-            parent.innerHTML = `<span id="storage-used-mb">${summary.storageUsedMB} MB</span> of 5 GB used`;
-        }
+        storageMbEl.textContent = `${totalUsedMB.toFixed(1)} MB`;
     }
 
-    const MAX_STORAGE_MB = 5 * 1024; // 5 GB limit
-    const storageUsedPercent = Math.min((summary.storageUsedMB / MAX_STORAGE_MB) * 100, 100);
+    const storageUsedPercent = Math.min((totalUsedMB / MAX_STORAGE_MB) * 100, 100);
 
     const storagePercentEl = document.getElementById("storage-percent");
     if (storagePercentEl) storagePercentEl.textContent = storageUsedPercent.toFixed(1);
 
     const storageFillEl = document.getElementById("storage-fill");
     if (storageFillEl) storageFillEl.style.width = `${storageUsedPercent}%`;
+
+    const cloudUsageContainer = document.getElementById("storage-by-cloud");
+    if (cloudUsageContainer) {
+        cloudUsageContainer.innerHTML = "";
+
+        if (summary.byCloud && summary.byCloud.length > 0) {
+            const sortedClouds = [...summary.byCloud].sort((a, b) => Number(b.totalBytes || 0) - Number(a.totalBytes || 0));
+
+            sortedClouds.forEach((item, index) => {
+                const serviceKey = (item.cloudService || "other").toLowerCase();
+                const meta = CLOUD_META[serviceKey] || CLOUD_META.other;
+                const cloudBytes = Number(item.totalBytes || 0);
+                const cloudShare = totalUsedBytes > 0 ? (cloudBytes / totalUsedBytes) * 100 : 0;
+                const quotaPercent = Math.min((cloudBytes / (MAX_STORAGE_MB * 1024 * 1024)) * 100, 100);
+
+                const usageCard = document.createElement("article");
+                usageCard.className = "cloud-usage-item";
+                usageCard.style.setProperty("--cloud-color", meta.color);
+                usageCard.style.setProperty("--cloud-delay", `${index * 80}ms`);
+                usageCard.innerHTML = `
+                    <div class="cloud-usage-head">
+                        <div class="cloud-usage-name">
+                            <span class="cloud-usage-mark">${meta.icon}</span>
+                            <span class="cloud-usage-provider">${formatCloudName(serviceKey)}</span>
+                        </div>
+                        <div class="cloud-usage-size-pill">${cloudShare.toFixed(1)}%</div>
+                    </div>
+                    <div class="cloud-usage-size">${formatStorageSize(cloudBytes)}</div>
+                    <div class="cloud-usage-bar">
+                        <div class="cloud-usage-fill" style="width:${Math.max(cloudShare, cloudShare > 0 ? 2 : 0)}%;"></div>
+                    </div>
+                    <div class="cloud-usage-meta">
+                        <span>${cloudShare.toFixed(1)}% of used storage</span>
+                        <span>${quotaPercent.toFixed(1)}% of total quota</span>
+                    </div>
+                `;
+                cloudUsageContainer.appendChild(usageCard);
+            });
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "cloud-usage-empty";
+            empty.textContent = "No cloud partitions yet. Upload files to see usage split by provider.";
+            cloudUsageContainer.appendChild(empty);
+        }
+    }
 
     // Populate cloud distribution
     const distributionContainer = document.getElementById("cloud-distribution");
@@ -240,12 +313,14 @@ const loadStats = async() => {
                 firebase: "#ff9800",
                 cloudinary: "#3498db",
                 supabase: "#3ECF8E",
+                aws: "#f97316",
                 mongodb: "#2ecc40"
             };
 
             summary.byCloud.forEach((item) => {
-                const percentage = summary.storageUsedBytes > 0 ? (item.totalBytes / summary.storageUsedBytes) * 100 : 0;
-                const color = colors[item.cloudService] || "#5856D6";
+                const serviceKey = (item.cloudService || "other").toLowerCase();
+                const percentage = totalUsedBytes > 0 ? (item.totalBytes / totalUsedBytes) * 100 : 0;
+                const color = colors[serviceKey] || "#5856D6";
 
                 const displayWidth = percentage > 0 && percentage < 1 ? 1 : percentage;
                 const displayPercent = percentage > 0 && percentage < 1 ? '<1' : Math.round(percentage);
@@ -253,7 +328,7 @@ const loadStats = async() => {
                 const div = document.createElement("div");
                 div.className = "distribution-item";
                 div.innerHTML = `
-          <div class="dist-label">${item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1)}</div>
+                    <div class="dist-label">${formatCloudName(serviceKey)}</div>
           <div class="dist-bar">
             <div class="dist-fill" style="width: ${displayWidth}%; background: ${color};"></div>
           </div>
@@ -443,12 +518,19 @@ const renderAnalytics = () => {
 const renderFiles = () => {
     if (!filesList) return;
 
+    if (filesHeading) {
+        filesHeading.textContent = state.recycleBinMode ? "Recycle Bin" : "All Files";
+    }
+    if (recycleToggleBtn) {
+        recycleToggleBtn.textContent = state.recycleBinMode ? "Back to Files" : "Recycle Bin";
+    }
+
     filesList.innerHTML = "";
 
     if (!state.files.length) {
         const empty = document.createElement("div");
         empty.className = "mini";
-        empty.textContent = "No files uploaded yet.";
+        empty.textContent = state.recycleBinMode ? "Recycle bin is empty." : "No files uploaded yet.";
         filesList.appendChild(empty);
         return;
     }
@@ -456,6 +538,28 @@ const renderFiles = () => {
     state.files.forEach((file) => {
         const card = document.createElement("div");
         card.className = "file-card";
+
+        const actionsHtml = state.recycleBinMode ? `
+                    <button class="action-btn restore-btn" data-id="${file._id}" title="Restore">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 1 0 .49-9"></path>
+                        </svg>
+                        <span>Restore</span>
+                    </button>
+                    <button class="action-btn permanent-delete-btn" data-id="${file._id}" title="Delete Permanently">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                ` : `
+                    <button class="action-btn file-trash-btn" data-id="${file._id}" title="Move to Recycle Bin">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                `;
 
         // Add file icon, details, and action buttons wrapper
         card.innerHTML = `
@@ -480,11 +584,7 @@ const renderFiles = () => {
           <span>Download</span>
         </button>
         <div class="action-btn-group">
-          <button class="action-btn file-action" data-id="${file._id}" title="Delete">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
+                    ${actionsHtml}
         </div>
       </div>
     `;
@@ -494,11 +594,10 @@ const renderFiles = () => {
 
     // Attach event listeners to buttons
 
-    // Delete Button
-    document.querySelectorAll(".file-action").forEach((button) => {
+    // Move to recycle bin
+    document.querySelectorAll(".file-trash-btn").forEach((button) => {
         button.addEventListener("click", async() => {
-            // Add a simple confirmation dialog before deleting
-            if (confirm('Are you sure you want to delete this file?')) {
+            if (confirm("Move this file to recycle bin?")) {
                 const tr = button.closest('.file-card');
                 tr.style.opacity = '0.5';
                 try {
@@ -506,7 +605,39 @@ const renderFiles = () => {
                 } catch (error) {
                     console.error(error)
                     tr.style.opacity = '1';
-                    alert("Delete failed")
+                    alert("Could not move file to recycle bin.")
+                }
+            }
+        });
+    });
+
+    // Restore from recycle bin
+    document.querySelectorAll(".restore-btn").forEach((button) => {
+        button.addEventListener("click", async() => {
+            const tr = button.closest('.file-card');
+            tr.style.opacity = '0.5';
+            try {
+                await restoreFile(button.dataset.id);
+            } catch (error) {
+                console.error(error);
+                tr.style.opacity = '1';
+                alert("Restore failed");
+            }
+        });
+    });
+
+    // Permanently delete from recycle bin
+    document.querySelectorAll(".permanent-delete-btn").forEach((button) => {
+        button.addEventListener("click", async() => {
+            if (confirm("Delete permanently? This cannot be undone.")) {
+                const tr = button.closest('.file-card');
+                tr.style.opacity = '0.5';
+                try {
+                    await permanentlyDeleteFile(button.dataset.id);
+                } catch (error) {
+                    console.error(error);
+                    tr.style.opacity = '1';
+                    alert("Permanent delete failed");
                 }
             }
         });
@@ -562,7 +693,7 @@ const renderFiles = () => {
         });
     });
     const recentFilesContainer = document.getElementById("recent-files");
-    if (recentFilesContainer) {
+    if (recentFilesContainer && !state.recycleBinMode) {
         recentFilesContainer.innerHTML = "";
         const recentFiles = state.files.slice(0, 4);
 
@@ -597,11 +728,16 @@ let loadFiles = async() => {
     if (cloudFilter && cloudFilter.value) {
         params.set("cloud", cloudFilter.value);
     }
+    if (state.recycleBinMode) {
+        params.set("bin", "true");
+    }
 
     const data = await apiRequest(`/files?${params.toString()}`);
     state.files = data.files;
     renderFiles();
-    renderAnalytics();
+    if (!state.recycleBinMode) {
+        renderAnalytics();
+    }
 };
 
 const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
@@ -628,6 +764,11 @@ const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
     if (!bypassRedirect) {
         setView("dashboard");
     }
+
+    // Register device for FCM push notifications (non-blocking)
+    if (typeof window.initFCM === "function") {
+        window.initFCM(API_BASE, () => firebaseUser.getIdToken()).catch(() => {});
+    }
 };
 
 const login = async(email, password) => {
@@ -644,7 +785,7 @@ const register = async(name, email, password) => {
 };
 
 const uploadFile = async(payload) => {
-    await apiRequest("/files/upload", {
+    return await apiRequest("/files/upload", {
         method: "POST",
         body: payload,
     });
@@ -652,6 +793,18 @@ const uploadFile = async(payload) => {
 
 const deleteFile = async(id) => {
     await apiRequest(`/files/${id}`, { method: "DELETE" });
+    await loadFiles();
+    await loadStats();
+};
+
+const restoreFile = async(id) => {
+    await apiRequest(`/files/${id}/restore`, { method: "POST" });
+    await loadFiles();
+    await loadStats();
+};
+
+const permanentlyDeleteFile = async(id) => {
+    await apiRequest(`/files/${id}/permanent`, { method: "DELETE" });
     await loadFiles();
     await loadStats();
 };
@@ -758,9 +911,28 @@ if (uploadForm) {
         const formData = new FormData(uploadForm);
 
         try {
-            await uploadFile(formData);
+            const result = await uploadFile(formData);
             if (uploadMessage) {
-                uploadMessage.textContent = "Upload complete.";
+                const es = result && result.emailStatus;
+                const fallback = result && result.fallback;
+                const malwareScan = result && result.malwareScan;
+                const fallbackNote =
+                    fallback && fallback.requested === "firebase" && fallback.used ?
+                    ` File stored on ${formatCloudName(fallback.used)} because Firebase is unavailable.` :
+                    "";
+                const scanNote =
+                    malwareScan && malwareScan.status === "scan-skipped" ?
+                    " (Malware scanner unavailable; upload allowed in best-effort mode.)" :
+                    "";
+                if (es && es.sent) {
+                    uploadMessage.textContent = `Upload complete! Email notification sent to your login email.${fallbackNote}${scanNote}`;
+                } else if (es && es.reason === "not-configured") {
+                    uploadMessage.textContent = `Upload complete. (Email service not configured on server yet.)${fallbackNote}${scanNote}`;
+                } else if (es && es.reason === "send-error") {
+                    uploadMessage.textContent = `Upload complete. (Email send failed — check server logs)${fallbackNote}${scanNote}`;
+                } else {
+                    uploadMessage.textContent = `Upload complete.${fallbackNote}${scanNote}`;
+                }
                 uploadMessage.className = "form-message success";
                 uploadMessage.style.color = "";
             }
@@ -770,7 +942,16 @@ if (uploadForm) {
             await loadStats();
         } catch (err) {
             if (uploadMessage) {
-                uploadMessage.textContent = err.message;
+                const msg = err.message || "";
+                if (err.code === "MALWARE_DETECTED" || msg.toLowerCase().includes("malware")) {
+                    uploadMessage.textContent = "⚠️ Upload blocked: malware detected in the selected file.";
+                } else if (err.code === "MALWARE_SCAN_UNAVAILABLE") {
+                    uploadMessage.textContent = "⚠️ Upload blocked: malware scanner is unavailable right now. Please try again later.";
+                } else if (msg.includes("billing account") || msg.includes("FIREBASE_BILLING") || msg.includes("accountDisabled")) {
+                    uploadMessage.textContent = "⚠️ Firebase Storage is unavailable (billing account closed). Please select Cloudinary, AWS S3, or Supabase.";
+                } else {
+                    uploadMessage.textContent = msg || "Upload failed.";
+                }
                 uploadMessage.className = "form-message error";
                 uploadMessage.style.color = "";
             }
@@ -792,6 +973,13 @@ if (cloudFilter) {
 
 if (refreshBtn) {
     refreshBtn.addEventListener("click", () => {
+        loadFiles().catch(() => {});
+    });
+}
+
+if (recycleToggleBtn) {
+    recycleToggleBtn.addEventListener("click", () => {
+        state.recycleBinMode = !state.recycleBinMode;
         loadFiles().catch(() => {});
     });
 }
@@ -1243,19 +1431,544 @@ document.querySelectorAll('.razorpay-btn').forEach(btn => {
 console.log('🎨 Enhanced animations loaded!');
 
 // ═══════════════════════════════════════════
+// GLOBAL i18n — Multilingual for ALL Views
+// ═══════════════════════════════════════════
+(function initGlobalI18n() {
+    var SETTINGS_KEY = 'cloudfusion_settings';
+
+    var globalDict = {
+        en: {
+            navDashboard: 'Dashboard',
+            navUpload: 'Upload Files',
+            navFiles: 'My Files',
+            navAnalytics: 'Analytics',
+            navSecurity: 'Security',
+            navServices: 'Cloud Services',
+            navSettings: 'Settings',
+            sideSecScore: 'Security Score',
+            sideLogout: 'Logout',
+            authWelcome: 'Welcome to CloudFusion',
+            authSubtitle: 'Unified cloud storage, infinite possibilities',
+            authLogin: 'Login',
+            authRegister: 'Register',
+            authEmail: 'Email',
+            authPassword: 'Password',
+            authName: 'Name',
+            authRememberMe: 'Remember me',
+            authForgotPassword: 'Forgot password?',
+            authPasswordHint: 'Use at least 8 characters with letters and numbers',
+            authFeatureSecure: 'Secure & Encrypted',
+            authFeatureMultiCloud: 'Multi-Cloud Storage',
+            authFeatureAnalytics: 'Real-time Analytics',
+            dashWelcome: 'Welcome back, ',
+            dashSubtitle: "Here's your cloud storage overview",
+            dashTotalFiles: 'Total Files',
+            dashStorageUsed: 'Storage Used',
+            dashCloudServices: 'Cloud Services',
+            dashSecurityScore: 'Security Score',
+            dashStorageUsage: 'Storage Usage',
+            dashRecentFiles: 'Recent Files',
+            dashCloudDistribution: 'Cloud Distribution',
+            uploadTitle: 'Upload Files',
+            uploadSubtitle: 'Upload files to multiple cloud storage providers',
+            uploadDragDrop: 'Drag & drop files here',
+            uploadOr: 'or',
+            uploadBrowse: 'Browse Files',
+            uploadMaxSize: 'Max file size: 100MB',
+            uploadBtn: 'Upload',
+            uploadSettings: 'Upload Settings',
+            uploadSelectCloud: 'Select Cloud Service',
+            uploadFilePrivacy: 'File Privacy',
+            uploadAutoEncrypt: 'Auto-encrypt files (AES-256)',
+            uploadSecFeatures: 'Security Features',
+            uploadE2E: '\u2713 End-to-end encryption',
+            uploadSecTransfer: '\u2713 Secure file transfer',
+            uploadAccessCtrl: '\u2713 Access control',
+            uploadActivityLog: '\u2713 Activity logging',
+            uploadPrivate: 'Private',
+            uploadPublic: 'Public',
+            filesTitle: 'My Files',
+            filesSubtitle: 'Manage all your uploaded files',
+            filesAll: 'All Files',
+            filesSearch: 'Search files',
+            filesAllClouds: 'All Clouds',
+            filesRefresh: '\u21BB Refresh',
+            analyticsTitle: 'Analytics',
+            analyticsSubtitle: 'Monitor your storage and usage statistics',
+            analyticsBandwidth: 'Total Bandwidth',
+            analyticsRequests: 'Total Requests',
+            analyticsStorageTime: 'Storage Usage Over Time',
+            analyticsFileType: 'File Type Distribution',
+            analyticsCloudProvider: 'Cloud Provider Distribution',
+            secTitle: 'Security',
+            secSubtitle: 'Manage your security settings and permissions',
+            secPassMgmt: 'Password Management',
+            secPassDesc: 'Ensure your account is using a long, random password to stay secure.',
+            secCurPass: 'Current Password',
+            secNewPass: 'New Password',
+            secUpdatePass: 'Update Password',
+            sec2FA: 'Two-Factor Authentication (2FA)',
+            sec2FADesc: 'Add an extra layer of security to your account.',
+            secScanQR: 'Scan this QR code with your authenticator app:',
+            secManualKey: 'Or enter this setup key manually:',
+            secEnterCode: 'Enter 6-digit code',
+            secVerify: 'Verify',
+            secActiveSess: 'Active Sessions',
+            secActiveSessDesc: 'Manage and log out of your active sessions on other devices.',
+            secLogoutOther: 'Logout Other Devices',
+            secCurSession: 'Current Session',
+            secActiveNow: 'Active Now',
+            svcTitle: 'Cloud Services',
+            svcSubtitle: 'Manage your connected cloud services',
+            svcChoosePlan: 'Choose Your Storage Plan',
+            svcPlanDesc: 'Upgrade your storage and unlock premium features.',
+            svcBasic: 'Basic',
+            svcPro: 'Pro',
+            svcEnterprise: 'Enterprise',
+            svcPopular: 'Most Popular',
+            svcCurrentPlan: 'Current Plan',
+            svcMo: '/mo',
+            svc5GB: '5 GB Storage',
+            svcAllCloud: 'All Cloud Providers',
+            svcStdSpeed: 'Standard Speed',
+            svcPriority: 'Priority Support',
+            svc100GB: '100 GB Storage',
+            svcHighSpeed: 'High Speed Sync',
+            svc1TB: '1 TB+ Storage',
+            svcUnlimited: 'Unlimited Speed',
+            svc247: '24/7 Dedicated Support'
+        },
+        hi: {
+            navDashboard: '\u0921\u0948\u0936\u092C\u094B\u0930\u094D\u0921',
+            navUpload: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902',
+            navFiles: '\u092E\u0947\u0930\u0940 \u092B\u093C\u093E\u0907\u0932\u0947\u0902',
+            navAnalytics: '\u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            navSecurity: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            navServices: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E\u090F\u0901',
+            navSettings: '\u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            sideSecScore: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            sideLogout: '\u0932\u0949\u0917\u0906\u0909\u091F',
+            authWelcome: 'CloudFusion \u092E\u0947\u0902 \u0906\u092A\u0915\u093E \u0938\u094D\u0935\u093E\u0917\u0924 \u0939\u0948',
+            authSubtitle: '\u090F\u0915\u0940\u0915\u0943\u0924 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C, \u0905\u0928\u0902\u0924 \u0938\u0902\u092D\u093E\u0935\u0928\u093E\u090F\u0901',
+            authLogin: '\u0932\u0949\u0917\u093F\u0928',
+            authRegister: '\u0930\u091C\u093F\u0938\u094D\u091F\u0930',
+            authEmail: '\u0908\u092E\u0947\u0932',
+            authPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            authName: '\u0928\u093E\u092E',
+            authRememberMe: '\u092E\u0941\u091D\u0947 \u092F\u093E\u0926 \u0930\u0916\u0947\u0902',
+            authForgotPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092D\u0942\u0932 \u0917\u090F?',
+            authPasswordHint: '\u0915\u092E \u0938\u0947 \u0915\u092E 8 \u0905\u0915\u094D\u0937\u0930, \u0905\u0915\u094D\u0937\u0930\u094B\u0902 \u0914\u0930 \u0938\u0902\u0916\u094D\u092F\u093E\u0913\u0902 \u0915\u0947 \u0938\u093E\u0925',
+            authFeatureSecure: '\u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0914\u0930 \u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u091F\u0947\u0921',
+            authFeatureMultiCloud: '\u092E\u0932\u094D\u091F\u0940-\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            authFeatureAnalytics: '\u0930\u093F\u092F\u0932-\u091F\u093E\u0907\u092E \u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            dashWelcome: '\u0935\u093E\u092A\u0938\u0940 \u092A\u0930 \u0938\u094D\u0935\u093E\u0917\u0924, ',
+            dashSubtitle: '\u092F\u0939\u093E\u0901 \u0906\u092A\u0915\u093E \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0905\u0935\u0932\u094B\u0915\u0928 \u0939\u0948',
+            dashTotalFiles: '\u0915\u0941\u0932 \u092B\u093C\u093E\u0907\u0932\u0947\u0902',
+            dashStorageUsed: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0909\u092A\u092F\u094B\u0917',
+            dashCloudServices: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E\u090F\u0901',
+            dashSecurityScore: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            dashStorageUsage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0909\u092A\u092F\u094B\u0917',
+            dashRecentFiles: '\u0939\u093E\u0932\u093F\u092F\u093E \u092B\u093C\u093E\u0907\u0932\u0947\u0902',
+            dashCloudDistribution: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0935\u093F\u0924\u0930\u0923',
+            uploadTitle: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902',
+            uploadSubtitle: '\u0915\u0908 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0930\u0926\u093E\u0924\u093E\u0913\u0902 \u092A\u0930 \u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902',
+            uploadDragDrop: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u092F\u0939\u093E\u0901 \u0916\u0940\u0902\u091A\u0947\u0902 \u0914\u0930 \u091B\u094B\u0921\u093C\u0947\u0902',
+            uploadOr: '\u092F\u093E',
+            uploadBrowse: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u092C\u094D\u0930\u093E\u0909\u091C\u093C \u0915\u0930\u0947\u0902',
+            uploadMaxSize: '\u0905\u0927\u093F\u0915\u0924\u092E \u092B\u093C\u093E\u0907\u0932 \u0906\u0915\u093E\u0930: 100MB',
+            uploadBtn: '\u0905\u092A\u0932\u094B\u0921',
+            uploadSettings: '\u0905\u092A\u0932\u094B\u0921 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            uploadSelectCloud: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E \u091A\u0941\u0928\u0947\u0902',
+            uploadFilePrivacy: '\u092B\u093C\u093E\u0907\u0932 \u0917\u094B\u092A\u0928\u0940\u092F\u0924\u093E',
+            uploadAutoEncrypt: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0911\u091F\u094B-\u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u091F (AES-256)',
+            uploadSecFeatures: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0941\u0935\u093F\u0927\u093E\u090F\u0901',
+            uploadE2E: '\u2713 \u090F\u0902\u0921-\u091F\u0942-\u090F\u0902\u0921 \u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u0936\u0928',
+            uploadSecTransfer: '\u2713 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093C\u093E\u0907\u0932 \u091F\u094D\u0930\u093E\u0902\u0938\u092B\u0930',
+            uploadAccessCtrl: '\u2713 \u090F\u0915\u094D\u0938\u0947\u0938 \u0915\u0902\u091F\u094D\u0930\u094B\u0932',
+            uploadActivityLog: '\u2713 \u0917\u0924\u093F\u0935\u093F\u0927\u093F \u0932\u0949\u0917\u093F\u0902\u0917',
+            uploadPrivate: '\u0928\u093F\u091C\u0940',
+            uploadPublic: '\u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915',
+            filesTitle: '\u092E\u0947\u0930\u0940 \u092B\u093C\u093E\u0907\u0932\u0947\u0902',
+            filesSubtitle: '\u0905\u092A\u0928\u0940 \u0938\u092D\u0940 \u0905\u092A\u0932\u094B\u0921 \u0915\u0940 \u0917\u0908 \u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            filesAll: '\u0938\u092D\u0940 \u092B\u093C\u093E\u0907\u0932\u0947\u0902',
+            filesSearch: '\u092B\u093C\u093E\u0907\u0932\u0947\u0902 \u0916\u094B\u091C\u0947\u0902',
+            filesAllClouds: '\u0938\u092D\u0940 \u0915\u094D\u0932\u093E\u0909\u0921',
+            filesRefresh: '\u21BB \u0930\u093F\u092B\u094D\u0930\u0947\u0936',
+            analyticsTitle: '\u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            analyticsSubtitle: '\u0905\u092A\u0928\u0947 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0914\u0930 \u0909\u092A\u092F\u094B\u0917 \u0915\u0947 \u0906\u0902\u0915\u0921\u093C\u094B\u0902 \u0915\u0940 \u0928\u093F\u0917\u0930\u093E\u0928\u0940 \u0915\u0930\u0947\u0902',
+            analyticsBandwidth: '\u0915\u0941\u0932 \u092C\u0948\u0902\u0921\u0935\u093F\u0921\u094D\u0925',
+            analyticsRequests: '\u0915\u0941\u0932 \u0905\u0928\u0941\u0930\u094B\u0927',
+            analyticsStorageTime: '\u0938\u092E\u092F \u0915\u0947 \u0938\u093E\u0925 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0909\u092A\u092F\u094B\u0917',
+            analyticsFileType: '\u092B\u093C\u093E\u0907\u0932 \u092A\u094D\u0930\u0915\u093E\u0930 \u0935\u093F\u0924\u0930\u0923',
+            analyticsCloudProvider: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0935\u093F\u0924\u0930\u0923',
+            secTitle: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            secSubtitle: '\u0905\u092A\u0928\u0940 \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938 \u0914\u0930 \u0905\u0928\u0941\u092E\u0924\u093F\u092F\u093E\u0901 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            secPassMgmt: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092A\u094D\u0930\u092C\u0902\u0927\u0928',
+            secPassDesc: '\u0938\u0941\u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0915\u0930\u0947\u0902 \u0915\u093F \u0906\u092A\u0915\u093E \u0916\u093E\u0924\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u0939\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u090F\u0915 \u0932\u0902\u092C\u093E, \u092F\u093E\u0926\u0943\u091A\u094D\u091B\u093F\u0915 \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0909\u092A\u092F\u094B\u0917 \u0915\u0930 \u0930\u0939\u093E \u0939\u0948\u0964',
+            secCurPass: '\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            secNewPass: '\u0928\u092F\u093E \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            secUpdatePass: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u0947\u0902',
+            sec2FA: '\u0926\u094B-\u0915\u093E\u0930\u0915 \u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923 (2FA)',
+            sec2FADesc: '\u0905\u092A\u0928\u0947 \u0916\u093E\u0924\u0947 \u092E\u0947\u0902 \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0915\u0940 \u090F\u0915 \u0905\u0924\u093F\u0930\u093F\u0915\u094D\u0924 \u092A\u0930\u0924 \u091C\u094B\u0921\u093C\u0947\u0902\u0964',
+            secScanQR: '\u0905\u092A\u0928\u0947 \u0911\u0925\u0947\u0902\u091F\u093F\u0915\u0947\u091F\u0930 \u0910\u092A \u0938\u0947 \u0907\u0938 QR \u0915\u094B\u0921 \u0915\u094B \u0938\u094D\u0915\u0948\u0928 \u0915\u0930\u0947\u0902:',
+            secManualKey: '\u092F\u093E \u092E\u0948\u0928\u094D\u092F\u0941\u0905\u0932\u0940 \u092F\u0939 \u0938\u0947\u091F\u0905\u092A \u0915\u0941\u0902\u091C\u0940 \u0926\u0930\u094D\u091C \u0915\u0930\u0947\u0902:',
+            secEnterCode: '6-\u0905\u0902\u0915\u0940\u092F \u0915\u094B\u0921 \u0926\u0930\u094D\u091C \u0915\u0930\u0947\u0902',
+            secVerify: '\u0938\u0924\u094D\u092F\u093E\u092A\u093F\u0924 \u0915\u0930\u0947\u0902',
+            secActiveSess: '\u0938\u0915\u094D\u0930\u093F\u092F \u0938\u0924\u094D\u0930',
+            secActiveSessDesc: '\u0905\u0928\u094D\u092F \u0909\u092A\u0915\u0930\u0923\u094B\u0902 \u092A\u0930 \u0905\u092A\u0928\u0947 \u0938\u0915\u094D\u0930\u093F\u092F \u0938\u0924\u094D\u0930\u094B\u0902 \u0915\u094B \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902 \u0914\u0930 \u0932\u0949\u0917 \u0906\u0909\u091F \u0915\u0930\u0947\u0902\u0964',
+            secLogoutOther: '\u0905\u0928\u094D\u092F \u0909\u092A\u0915\u0930\u0923 \u0932\u0949\u0917 \u0906\u0909\u091F \u0915\u0930\u0947\u0902',
+            secCurSession: '\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u0938\u0924\u094D\u0930',
+            secActiveNow: '\u0905\u092D\u0940 \u0938\u0915\u094D\u0930\u093F\u092F',
+            svcTitle: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E\u090F\u0901',
+            svcSubtitle: '\u0905\u092A\u0928\u0940 \u0915\u0928\u0947\u0915\u094D\u091F\u0947\u0921 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E\u090F\u0901 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            svcChoosePlan: '\u0905\u092A\u0928\u093E \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0932\u093E\u0928 \u091A\u0941\u0928\u0947\u0902',
+            svcPlanDesc: '\u0905\u092A\u0928\u093E \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0905\u092A\u0917\u094D\u0930\u0947\u0921 \u0915\u0930\u0947\u0902 \u0914\u0930 \u092A\u094D\u0930\u0940\u092E\u093F\u092F\u092E \u0938\u0941\u0935\u093F\u0927\u093E\u090F\u0901 \u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u0947\u0902\u0964',
+            svcBasic: '\u092C\u0947\u0938\u093F\u0915',
+            svcPro: '\u092A\u094D\u0930\u094B',
+            svcEnterprise: '\u090F\u0902\u091F\u0930\u092A\u094D\u0930\u093E\u0907\u091C\u093C',
+            svcPopular: '\u0938\u092C\u0938\u0947 \u0932\u094B\u0915\u092A\u094D\u0930\u093F\u092F',
+            svcCurrentPlan: '\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092A\u094D\u0932\u093E\u0928',
+            svcMo: '/\u092E\u093E\u0939',
+            svc5GB: '5 GB \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcAllCloud: '\u0938\u092D\u0940 \u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E',
+            svcStdSpeed: '\u0938\u094D\u091F\u0948\u0902\u0921\u0930\u094D\u0921 \u0938\u094D\u092A\u0940\u0921',
+            svcPriority: '\u092A\u094D\u0930\u093E\u0925\u092E\u093F\u0915\u0924\u093E \u0938\u0939\u093E\u092F\u0924\u093E',
+            svc100GB: '100 GB \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcHighSpeed: '\u0939\u093E\u0908 \u0938\u094D\u092A\u0940\u0921 \u0938\u093F\u0902\u0915',
+            svc1TB: '1 TB+ \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcUnlimited: '\u0905\u0928\u0932\u093F\u092E\u093F\u091F\u0947\u0921 \u0938\u094D\u092A\u0940\u0921',
+            svc247: '24/7 \u0938\u092E\u0930\u094D\u092A\u093F\u0924 \u0938\u0939\u093E\u092F\u0924\u093E'
+        },
+        mr: {
+            navDashboard: '\u0921\u0945\u0936\u092C\u094B\u0930\u094D\u0921',
+            navUpload: '\u092B\u093E\u0907\u0932\u094D\u0938 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u093E',
+            navFiles: '\u092E\u093E\u091D\u094D\u092F\u093E \u092B\u093E\u0907\u0932\u094D\u0938',
+            navAnalytics: '\u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            navSecurity: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            navServices: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E',
+            navSettings: '\u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            sideSecScore: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            sideLogout: '\u0932\u0949\u0917\u0906\u0909\u091F',
+            authWelcome: 'CloudFusion \u092E\u0927\u094D\u092F\u0947 \u0906\u092A\u0932\u0947 \u0938\u094D\u0935\u093E\u0917\u0924 \u0906\u0939\u0947',
+            authSubtitle: '\u090F\u0915\u0924\u094D\u0930\u093F\u0924 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C, \u0905\u092E\u0930\u094D\u092F\u093E\u0926 \u0936\u0915\u094D\u092F\u0924\u093E',
+            authLogin: '\u0932\u0949\u0917\u093F\u0928',
+            authRegister: '\u0928\u094B\u0902\u0926\u0923\u0940',
+            authEmail: '\u0908\u092E\u0947\u0932',
+            authPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            authName: '\u0928\u093E\u0935',
+            authRememberMe: '\u092E\u0932\u093E \u0932\u0915\u094D\u0937\u093E\u0924 \u0920\u0947\u0935\u093E',
+            authForgotPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0935\u093F\u0938\u0930\u0932\u093E\u0924?',
+            authPasswordHint: '\u0915\u093F\u092E\u093E\u0928 8 \u0905\u0915\u094D\u0937\u0930\u0947, \u0905\u0915\u094D\u0937\u0930\u0947 \u0906\u0923\u093F \u0938\u0902\u0916\u094D\u092F\u093E \u0935\u093E\u092A\u0930\u093E',
+            authFeatureSecure: '\u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0906\u0923\u093F \u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u091F\u0947\u0921',
+            authFeatureMultiCloud: '\u092E\u0932\u094D\u091F\u0940-\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            authFeatureAnalytics: '\u0930\u093F\u0905\u0932-\u091F\u093E\u0907\u092E \u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            dashWelcome: '\u092A\u0930\u0924 \u0938\u094D\u0935\u093E\u0917\u0924, ',
+            dashSubtitle: '\u0939\u0947 \u0924\u0941\u092E\u091A\u0947 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u093F\u0939\u0902\u0917\u093E\u0935\u0932\u094B\u0915\u0928 \u0906\u0939\u0947',
+            dashTotalFiles: '\u090F\u0915\u0942\u0923 \u092B\u093E\u0907\u0932\u094D\u0938',
+            dashStorageUsed: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u093E\u092A\u0930',
+            dashCloudServices: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E',
+            dashSecurityScore: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            dashStorageUsage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u093E\u092A\u0930',
+            dashRecentFiles: '\u0905\u0932\u0940\u0915\u0921\u0940\u0932 \u092B\u093E\u0907\u0932\u094D\u0938',
+            dashCloudDistribution: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0935\u093F\u0924\u0930\u0923',
+            uploadTitle: '\u092B\u093E\u0907\u0932\u094D\u0938 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u093E',
+            uploadSubtitle: '\u0905\u0928\u0947\u0915 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0930\u0926\u093E\u0924\u094D\u092F\u093E\u0902\u0935\u0930 \u092B\u093E\u0907\u0932\u094D\u0938 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u093E',
+            uploadDragDrop: '\u092B\u093E\u0907\u0932\u094D\u0938 \u0907\u0925\u0947 \u0921\u094D\u0930\u0945\u0917 \u0906\u0923\u093F \u0921\u094D\u0930\u0949\u092A \u0915\u0930\u093E',
+            uploadOr: '\u0915\u093F\u0902\u0935\u093E',
+            uploadBrowse: '\u092B\u093E\u0907\u0932\u094D\u0938 \u092C\u094D\u0930\u093E\u0909\u091D \u0915\u0930\u093E',
+            uploadMaxSize: '\u0915\u092E\u093E\u0932 \u092B\u093E\u0907\u0932 \u0906\u0915\u093E\u0930: 100MB',
+            uploadBtn: '\u0905\u092A\u0932\u094B\u0921',
+            uploadSettings: '\u0905\u092A\u0932\u094B\u0921 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            uploadSelectCloud: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E \u0928\u093F\u0935\u0921\u093E',
+            uploadFilePrivacy: '\u092B\u093E\u0907\u0932 \u0917\u094B\u092A\u0928\u0940\u092F\u0924\u093E',
+            uploadAutoEncrypt: '\u092B\u093E\u0907\u0932\u094D\u0938 \u0911\u091F\u094B-\u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u091F (AES-256)',
+            uploadSecFeatures: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0935\u0948\u0936\u093F\u0937\u094D\u091F\u094D\u092F\u0947',
+            uploadE2E: '\u2713 \u090F\u0902\u0921-\u091F\u0942-\u090F\u0902\u0921 \u090F\u0928\u094D\u0915\u094D\u0930\u093F\u092A\u094D\u0936\u0928',
+            uploadSecTransfer: '\u2713 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093E\u0907\u0932 \u091F\u094D\u0930\u093E\u0928\u094D\u0938\u092B\u0930',
+            uploadAccessCtrl: '\u2713 \u0905\u0945\u0915\u094D\u0938\u0947\u0938 \u0915\u0902\u091F\u094D\u0930\u094B\u0932',
+            uploadActivityLog: '\u2713 \u0915\u094D\u0930\u093F\u092F\u093E\u0915\u0932\u093E\u092A \u0932\u0949\u0917\u093F\u0902\u0917',
+            uploadPrivate: '\u0916\u093E\u091C\u0917\u0940',
+            uploadPublic: '\u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915',
+            filesTitle: '\u092E\u093E\u091D\u094D\u092F\u093E \u092B\u093E\u0907\u0932\u094D\u0938',
+            filesSubtitle: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0938\u0930\u094D\u0935 \u0905\u092A\u0932\u094B\u0921 \u0915\u0947\u0932\u0947\u0932\u094D\u092F\u093E \u092B\u093E\u0907\u0932\u094D\u0938 \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            filesAll: '\u0938\u0930\u094D\u0935 \u092B\u093E\u0907\u0932\u094D\u0938',
+            filesSearch: '\u092B\u093E\u0907\u0932\u094D\u0938 \u0936\u094B\u0927\u093E',
+            filesAllClouds: '\u0938\u0930\u094D\u0935 \u0915\u094D\u0932\u093E\u0909\u0921',
+            filesRefresh: '\u21BB \u0930\u093F\u092B\u094D\u0930\u0947\u0936',
+            analyticsTitle: '\u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923',
+            analyticsSubtitle: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0906\u0923\u093F \u0935\u093E\u092A\u0930 \u0906\u0915\u0921\u0947\u0935\u093E\u0930\u0940\u091A\u0947 \u0928\u093F\u0930\u0940\u0915\u094D\u0937\u0923 \u0915\u0930\u093E',
+            analyticsBandwidth: '\u090F\u0915\u0942\u0923 \u092C\u0945\u0902\u0921\u0935\u093F\u0921\u094D\u0925',
+            analyticsRequests: '\u090F\u0915\u0942\u0923 \u0935\u093F\u0928\u0902\u0924\u094D\u092F\u093E',
+            analyticsStorageTime: '\u0935\u0947\u0933\u0947\u0928\u0941\u0938\u093E\u0930 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u093E\u092A\u0930',
+            analyticsFileType: '\u092B\u093E\u0907\u0932 \u092A\u094D\u0930\u0915\u093E\u0930 \u0935\u093F\u0924\u0930\u0923',
+            analyticsCloudProvider: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0935\u093F\u0924\u0930\u0923',
+            secTitle: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            secSubtitle: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C \u0906\u0923\u093F \u092A\u0930\u0935\u093E\u0928\u0917\u094D\u092F\u093E \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            secPassMgmt: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u0928',
+            secPassDesc: '\u0924\u0941\u092E\u091A\u0947 \u0916\u093E\u0924\u0947 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0930\u093E\u0939\u0923\u094D\u092F\u093E\u0938\u093E\u0920\u0940 \u0932\u093E\u0902\u092C, \u092F\u093E\u0926\u0943\u091A\u094D\u091B\u093F\u0915 \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0935\u093E\u092A\u0930\u0924 \u0905\u0938\u0932\u094D\u092F\u093E\u091A\u0940 \u0916\u093E\u0924\u094D\u0930\u0940 \u0915\u0930\u093E.',
+            secCurPass: '\u0938\u0927\u094D\u092F\u093E\u091A\u093E \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            secNewPass: '\u0928\u0935\u0940\u0928 \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            secUpdatePass: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u093E',
+            sec2FA: '\u0926\u094D\u0935\u093F-\u0918\u091F\u0915 \u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923 (2FA)',
+            sec2FADesc: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0916\u093E\u0924\u094D\u092F\u093E\u0924 \u0938\u0941\u0930\u0915\u094D\u0937\u0947\u091A\u093E \u0905\u0924\u093F\u0930\u093F\u0915\u094D\u0924 \u0938\u094D\u0924\u0930 \u091C\u094B\u0921\u093E.',
+            secScanQR: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0911\u0925\u0947\u0902\u091F\u093F\u0915\u0947\u091F\u0930 \u0905\u0945\u092A\u0928\u0947 \u0939\u093E QR \u0915\u094B\u0921 \u0938\u094D\u0915\u0945\u0928 \u0915\u0930\u093E:',
+            secManualKey: '\u0915\u093F\u0902\u0935\u093E \u0939\u0940 \u0938\u0947\u091F\u0905\u092A \u0915\u0940 \u092E\u0945\u0928\u094D\u092F\u0941\u0905\u0932\u0940 \u092A\u094D\u0930\u0935\u093F\u0937\u094D\u091F \u0915\u0930\u093E:',
+            secEnterCode: '6-\u0905\u0902\u0915\u0940 \u0915\u094B\u0921 \u092A\u094D\u0930\u0935\u093F\u0937\u094D\u091F \u0915\u0930\u093E',
+            secVerify: '\u0938\u0924\u094D\u092F\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            secActiveSess: '\u0938\u0915\u094D\u0930\u093F\u092F \u0938\u0924\u094D\u0930\u0947',
+            secActiveSessDesc: '\u0907\u0924\u0930 \u0909\u092A\u0915\u0930\u0923\u093E\u0902\u0935\u0930\u0940\u0932 \u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0938\u0915\u094D\u0930\u093F\u092F \u0938\u0924\u094D\u0930\u093E\u0902\u091A\u0947 \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u0928 \u0915\u0930\u093E \u0906\u0923\u093F \u0932\u0949\u0917 \u0906\u0909\u091F \u0915\u0930\u093E.',
+            secLogoutOther: '\u0907\u0924\u0930 \u0909\u092A\u0915\u0930\u0923\u0947 \u0932\u0949\u0917 \u0906\u0909\u091F \u0915\u0930\u093E',
+            secCurSession: '\u0938\u0927\u094D\u092F\u093E\u091A\u0947 \u0938\u0924\u094D\u0930',
+            secActiveNow: '\u0906\u0924\u093E \u0938\u0915\u094D\u0930\u093F\u092F',
+            svcTitle: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E',
+            svcSubtitle: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0915\u0928\u0947\u0915\u094D\u091F \u0915\u0947\u0932\u0947\u0932\u094D\u092F\u093E \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u0947\u0935\u093E \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            svcChoosePlan: '\u0924\u0941\u092E\u091A\u093E \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0932\u0945\u0928 \u0928\u093F\u0935\u0921\u093E',
+            svcPlanDesc: '\u0924\u0941\u092E\u091A\u0947 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0905\u092A\u0917\u094D\u0930\u0947\u0921 \u0915\u0930\u093E \u0906\u0923\u093F \u092A\u094D\u0930\u0940\u092E\u093F\u092F\u092E \u0935\u0948\u0936\u093F\u0937\u094D\u091F\u094D\u092F\u0947 \u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u093E.',
+            svcBasic: '\u092C\u0947\u0938\u093F\u0915',
+            svcPro: '\u092A\u094D\u0930\u094B',
+            svcEnterprise: '\u090F\u0902\u091F\u0930\u092A\u094D\u0930\u093E\u0907\u091D',
+            svcPopular: '\u0938\u0930\u094D\u0935\u093E\u0924 \u0932\u094B\u0915\u092A\u094D\u0930\u093F\u092F',
+            svcCurrentPlan: '\u0938\u0927\u094D\u092F\u093E\u091A\u093E \u092A\u094D\u0932\u0945\u0928',
+            svcMo: '/\u092E\u0939\u093F\u0928\u093E',
+            svc5GB: '5 GB \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcAllCloud: '\u0938\u0930\u094D\u0935 \u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u0947',
+            svcStdSpeed: '\u0938\u094D\u091F\u0945\u0902\u0921\u0930\u094D\u0921 \u0938\u094D\u092A\u0940\u0921',
+            svcPriority: '\u092A\u094D\u0930\u093E\u0927\u093E\u0928\u094D\u092F \u0938\u0939\u093E\u092F\u094D\u092F',
+            svc100GB: '100 GB \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcHighSpeed: '\u0939\u093E\u092F \u0938\u094D\u092A\u0940\u0921 \u0938\u093F\u0902\u0915',
+            svc1TB: '1 TB+ \u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            svcUnlimited: '\u0905\u0928\u0932\u093F\u092E\u093F\u091F\u0947\u0921 \u0938\u094D\u092A\u0940\u0921',
+            svc247: '24/7 \u0938\u092E\u0930\u094D\u092A\u093F\u0924 \u0938\u0939\u093E\u092F\u094D\u092F'
+        }
+    };
+
+    function setFirstText(el, text) {
+        for (var i = 0; i < el.childNodes.length; i++) {
+            if (el.childNodes[i].nodeType === 3 && el.childNodes[i].textContent.trim()) {
+                el.childNodes[i].textContent = text + '\n            ';
+                return;
+            }
+        }
+    }
+
+    function setLastText(el, text) {
+        for (var i = el.childNodes.length - 1; i >= 0; i--) {
+            if (el.childNodes[i].nodeType === 3 && el.childNodes[i].textContent.trim()) {
+                el.childNodes[i].textContent = ' ' + text;
+                return;
+            }
+        }
+    }
+
+    function t(sel, key, mode) {
+        var el = document.querySelector(sel);
+        if (!el || !dict[key]) return;
+        if (mode === 'firstText') setFirstText(el, dict[key]);
+        else if (mode === 'lastText') setLastText(el, dict[key]);
+        else if (mode === 'placeholder') el.placeholder = dict[key];
+        else el.textContent = dict[key];
+    }
+
+    var dict;
+
+    window.applyGlobalLanguage = function(lang) {
+        dict = globalDict[lang] || globalDict.en;
+
+        // ── Sidebar ──
+        t('.nav-btn[data-view="dashboard"] span', 'navDashboard');
+        t('.nav-btn[data-view="upload"] span', 'navUpload');
+        t('.nav-btn[data-view="files"] span', 'navFiles');
+        t('.nav-btn[data-view="analytics"] span', 'navAnalytics');
+        t('.nav-btn[data-view="security"] span', 'navSecurity');
+        t('.nav-btn[data-view="services"] span', 'navServices');
+        t('.nav-btn[data-view="settings"] span', 'navSettings');
+        t('.side-card h3', 'sideSecScore');
+        t('#sidebar-logout-btn span', 'sideLogout');
+
+        // ── Auth View ──
+        t('.auth-header h2', 'authWelcome');
+        t('.auth-subtitle', 'authSubtitle');
+        t('.tab[data-tab="login"]', 'authLogin');
+        t('.tab[data-tab="register"]', 'authRegister');
+        t('#login-form > label:nth-of-type(1)', 'authEmail', 'firstText');
+        t('#login-form > label:nth-of-type(2)', 'authPassword', 'firstText');
+        t('#login-form .primary', 'authLogin');
+        t('.checkbox-label span', 'authRememberMe');
+        t('.forgot-link', 'authForgotPassword');
+        t('#register-form > label:nth-of-type(1)', 'authName', 'firstText');
+        t('#register-form > label:nth-of-type(2)', 'authEmail', 'firstText');
+        t('#register-form > label:nth-of-type(3)', 'authPassword', 'firstText');
+        t('#register-form .primary', 'authRegister');
+        t('.password-hint', 'authPasswordHint');
+        t('.auth-features .feature-item:nth-child(1) span', 'authFeatureSecure');
+        t('.auth-features .feature-item:nth-child(2) span', 'authFeatureMultiCloud');
+        t('.auth-features .feature-item:nth-child(3) span', 'authFeatureAnalytics');
+
+        // ── Dashboard View ──
+        var dashH2 = document.querySelector('#dashboard-view > header h2');
+        if (dashH2) {
+            for (var i = 0; i < dashH2.childNodes.length; i++) {
+                if (dashH2.childNodes[i].nodeType === 3 && dashH2.childNodes[i].textContent.trim()) {
+                    dashH2.childNodes[i].textContent = dict.dashWelcome;
+                    break;
+                }
+            }
+        }
+        t('#dashboard-view > header .muted', 'dashSubtitle');
+        t('#dashboard-view .stats-grid .stat-card:nth-child(1) .stat-label', 'dashTotalFiles');
+        t('#dashboard-view .stats-grid .stat-card:nth-child(2) .stat-label', 'dashStorageUsed');
+        t('#dashboard-view .stats-grid .stat-card:nth-child(3) .stat-label', 'dashCloudServices');
+        t('#dashboard-view .stats-grid .stat-card:nth-child(4) .stat-label', 'dashSecurityScore');
+        t('.storage-panel h3', 'dashStorageUsage');
+        t('.recent-panel h3', 'dashRecentFiles');
+        t('.distribution-panel h3', 'dashCloudDistribution');
+
+        // ── Upload View ──
+        t('#upload-view > header h2', 'uploadTitle');
+        t('#upload-view > header .muted', 'uploadSubtitle');
+        t('.drop-text', 'uploadDragDrop');
+        t('.drop-or', 'uploadOr');
+        t('.btn-browse', 'uploadBrowse');
+        t('.file-limits', 'uploadMaxSize');
+        t('.btn-upload-submit', 'uploadBtn');
+        t('.upload-settings .settings-title', 'uploadSettings');
+        t('#upload-view label[for="upload-cloud"]', 'uploadSelectCloud');
+        var uploadFormGroups = document.querySelectorAll('.upload-settings .form-group');
+        if (uploadFormGroups[1]) {
+            var lbl = uploadFormGroups[1].querySelector('label');
+            if (lbl) lbl.textContent = dict.uploadFilePrivacy;
+        }
+        t('.upload-settings .checkbox-text', 'uploadAutoEncrypt');
+        t('.upload-security-info h4', 'uploadSecFeatures');
+        var secFeatureItems = document.querySelectorAll('.upload-security-info li');
+        var secFeatureKeys = ['uploadE2E', 'uploadSecTransfer', 'uploadAccessCtrl', 'uploadActivityLog'];
+        secFeatureItems.forEach(function(li, idx) {
+            if (secFeatureKeys[idx] && dict[secFeatureKeys[idx]]) li.textContent = dict[secFeatureKeys[idx]];
+        });
+        var privacySelect = document.querySelector('.upload-settings select[name="privacy"]');
+        if (privacySelect) {
+            for (var j = 0; j < privacySelect.options.length; j++) {
+                if (privacySelect.options[j].value === 'private') privacySelect.options[j].textContent = dict.uploadPrivate;
+                if (privacySelect.options[j].value === 'public') privacySelect.options[j].textContent = dict.uploadPublic;
+            }
+        }
+
+        // ── Files View ──
+        t('#files-view > header h2', 'filesTitle');
+        t('#files-view > header .muted', 'filesSubtitle');
+        t('#files-view .section-head h3', 'filesAll');
+        t('#search-input-files', 'filesSearch', 'placeholder');
+        t('#refresh-btn-files', 'filesRefresh');
+        var cloudFilterEl = document.getElementById('cloud-filter-files');
+        if (cloudFilterEl && cloudFilterEl.options[0]) cloudFilterEl.options[0].textContent = dict.filesAllClouds;
+
+        // ── Analytics View ──
+        t('#analytics-view > header h2', 'analyticsTitle');
+        t('#analytics-view > header .muted', 'analyticsSubtitle');
+        t('#analytics-view .stats-grid .stat-card:nth-child(1) .stat-label', 'analyticsBandwidth');
+        t('#analytics-view .stats-grid .stat-card:nth-child(2) .stat-label', 'analyticsRequests');
+        t('#analytics-view > .full-width-panel h3', 'analyticsStorageTime');
+        var analyticsPanels = document.querySelectorAll('#analytics-view .dashboard-sections .panel h3');
+        if (analyticsPanels[0]) analyticsPanels[0].textContent = dict.analyticsFileType;
+        if (analyticsPanels[1]) analyticsPanels[1].textContent = dict.analyticsCloudProvider;
+
+        // ── Security View ──
+        t('#security-view > header h2', 'secTitle');
+        t('#security-view > header .muted', 'secSubtitle');
+        var secPanels = document.querySelectorAll('.security-grid > .security-panel');
+        if (secPanels[0]) {
+            var h3p = secPanels[0].querySelector('h3');
+            if (h3p) h3p.textContent = dict.secPassMgmt;
+            var pp = secPanels[0].querySelector('p.muted');
+            if (pp) pp.textContent = dict.secPassDesc;
+        }
+        t('#change-password-form > label:nth-of-type(1)', 'secCurPass', 'firstText');
+        t('#change-password-form > label:nth-of-type(2)', 'secNewPass', 'firstText');
+        t('#change-password-form .primary', 'secUpdatePass');
+        if (secPanels[1]) {
+            var h3t = secPanels[1].querySelector('h3');
+            if (h3t) h3t.textContent = dict.sec2FA;
+            var pt = secPanels[1].querySelector('.muted');
+            if (pt) pt.textContent = dict.sec2FADesc;
+        }
+        t('#tfa-setup-container > .font-bold', 'secScanQR');
+        var manualKeyP = document.querySelector('#tfa-setup-container > p.muted');
+        if (manualKeyP) setFirstText(manualKeyP, dict.secManualKey);
+        t('#tfa-code', 'secEnterCode', 'placeholder');
+        t('#tfa-verify-form .primary', 'secVerify');
+        if (secPanels[2]) {
+            var h3s = secPanels[2].querySelector('h3');
+            if (h3s) h3s.textContent = dict.secActiveSess;
+            var ps = secPanels[2].querySelector('.muted');
+            if (ps) ps.textContent = dict.secActiveSessDesc;
+        }
+        t('#revoke-sessions-btn', 'secLogoutOther');
+        var sessionDevice = document.querySelector('.session-device');
+        if (sessionDevice) {
+            var badge = sessionDevice.querySelector('.badge');
+            if (badge) badge.textContent = dict.secActiveNow;
+            for (var k = 0; k < sessionDevice.childNodes.length; k++) {
+                if (sessionDevice.childNodes[k].nodeType === 3 && sessionDevice.childNodes[k].textContent.trim()) {
+                    sessionDevice.childNodes[k].textContent = dict.secCurSession + ' ';
+                    break;
+                }
+            }
+        }
+
+        // ── Services View ──
+        t('#services-view > header h2', 'svcTitle');
+        t('#services-view > header .muted', 'svcSubtitle');
+        t('.pricing-header h3', 'svcChoosePlan');
+        t('.pricing-header .muted', 'svcPlanDesc');
+        t('.popular-badge', 'svcPopular');
+        var pricingCards = document.querySelectorAll('.pricing-card');
+        var cardDefs = [
+            { title: 'svcBasic', features: ['svc5GB', 'svcAllCloud', 'svcStdSpeed', 'svcPriority'] },
+            { title: 'svcPro', features: ['svc100GB', 'svcAllCloud', 'svcHighSpeed', 'svcPriority'] },
+            { title: 'svcEnterprise', features: ['svc1TB', 'svcAllCloud', 'svcUnlimited', 'svc247'] }
+        ];
+        pricingCards.forEach(function(card, ci) {
+            if (!cardDefs[ci]) return;
+            var h4 = card.querySelector('h4');
+            if (h4) h4.textContent = dict[cardDefs[ci].title];
+            var period = card.querySelector('.period');
+            if (period) period.textContent = dict.svcMo;
+            card.querySelectorAll('.features-list li').forEach(function(li, fi) {
+                if (cardDefs[ci].features[fi]) setLastText(li, dict[cardDefs[ci].features[fi]]);
+            });
+        });
+        var curPlanBtn = document.querySelector('.pricing-btn.current');
+        if (curPlanBtn) curPlanBtn.textContent = dict.svcCurrentPlan;
+
+        // ── Page title ──
+        document.title = 'CloudFusion - ' + (dict.authFeatureMultiCloud || 'Multi-Cloud Storage');
+    };
+
+    // Apply saved language on load
+    try {
+        var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+        if (s.language && s.language !== 'en') {
+            window.applyGlobalLanguage(s.language);
+        }
+    } catch (e) {}
+})();
+
+// ═══════════════════════════════════════════
 // SETTINGS PAGE — Fully Dynamic & Interactive
 // ═══════════════════════════════════════════
 (function initSettingsPage() {
     var SETTINGS_KEY = 'cloudfusion_settings';
 
-    function saveSettings(partial) {
-        var cur = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-        Object.assign(cur, partial);
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(cur));
-    }
-
+    // ── Core helpers ──
     function loadSettings() {
         return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    }
+
+    function saveSettings(partial) {
+        var cur = loadSettings();
+        Object.assign(cur, partial);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(cur));
+        updateSecurityScore();
     }
     var saved = loadSettings();
 
@@ -1267,7 +1980,404 @@ console.log('🎨 Enhanced animations loaded!');
 
     function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 
-    // ── Tab Switching with Animation ──
+    // ════════════════════════════════════════
+    //  1. MULTILINGUAL SUPPORT (EN / HI / MR)
+    // ════════════════════════════════════════
+    var translations = {
+        en: {
+            settingsTitle: 'Settings',
+            settingsSubtitle: 'Manage your preferences and account settings',
+            logout: 'Logout',
+            tabProfile: 'Profile',
+            tabSecurity: 'Security',
+            tabCloud: 'Cloud Providers',
+            tabStorage: 'Storage',
+            tabNotifications: 'Notifications',
+            tabAppearance: 'Appearance',
+            profileSettings: 'Profile Settings',
+            profileDesc: 'Manage your personal information',
+            fullName: 'Full Name',
+            emailAddress: 'Email Address',
+            phoneNumber: 'Phone Number',
+            timezone: 'Timezone',
+            saveChanges: 'Save Changes',
+            changePassword: 'Change Password',
+            securitySettings: 'Security Settings',
+            securityDesc: 'Protect your account with enhanced security',
+            twoFactorAuth: 'Two-Factor Authentication',
+            twoFactorDesc: 'Add an extra layer of security with 2FA',
+            currentPassword: 'Current Password',
+            newPassword: 'New Password',
+            confirmPassword: 'Confirm New Password',
+            updatePassword: 'Update Password',
+            loginActivity: 'Login Activity',
+            loginActivityDesc: 'Recent logins to your account',
+            activeDevices: 'Active Devices',
+            activeDevicesDesc: 'Devices currently signed in',
+            revoke: 'Revoke',
+            cloudSettings: 'Cloud Provider Settings',
+            cloudDesc: 'Connect and manage your cloud storage services',
+            connect: 'Connect',
+            disconnect: 'Disconnect',
+            apiKey: 'API Key',
+            projectId: 'Project ID',
+            cloudName: 'Cloud Name',
+            storagePrefs: 'Storage Preferences',
+            storageDesc: 'Configure storage behavior and limits',
+            defaultProvider: 'Default Cloud Provider',
+            autoBackup: 'Auto Backup',
+            autoBackupDesc: 'Automatically backup files to secondary cloud',
+            fileVersioning: 'File Versioning',
+            fileVersioningDesc: 'Keep previous versions of uploaded files',
+            storageUsage: 'Storage Usage',
+            notifSettings: 'Notification Settings',
+            notifDesc: 'Control how you receive alerts and updates',
+            emailNotif: 'Email Notifications',
+            emailNotifDesc: 'Receive important updates via email',
+            uploadAlerts: 'Upload Success Alerts',
+            uploadAlertsDesc: 'Get notified when file uploads complete',
+            securityAlerts: 'Security Alerts',
+            securityAlertsDesc: 'Alert on suspicious login attempts',
+            storageLimitWarn: 'Storage Limit Warning',
+            storageLimitDesc: 'Notify when storage reaches 80% capacity',
+            appearanceSettings: 'Appearance Settings',
+            appearanceDesc: 'Customize the look and feel',
+            darkMode: 'Dark Mode',
+            darkModeDesc: 'Switch between light and dark themes',
+            dashboardLayout: 'Dashboard Layout',
+            layoutDefault: 'Default',
+            layoutCompact: 'Compact',
+            layoutWide: 'Wide',
+            language: 'Language',
+            secScoreTitle: 'Security Score',
+            secProfile: 'Profile completed',
+            secPassword: 'Password updated',
+            secNotifs: 'Notifications enabled',
+            secProvider: 'Cloud provider connected',
+            sec2fa: '2FA enabled',
+            cancel: 'Cancel',
+            modalChangePass: 'Change Password'
+        },
+        hi: {
+            settingsTitle: '\u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            settingsSubtitle: '\u0905\u092A\u0928\u0940 \u092A\u094D\u0930\u093E\u0925\u092E\u093F\u0915\u0924\u093E\u090F\u0901 \u0914\u0930 \u0916\u093E\u0924\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            logout: '\u0932\u0949\u0917\u0906\u0909\u091F',
+            tabProfile: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932',
+            tabSecurity: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            tabCloud: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E',
+            tabStorage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            tabNotifications: '\u0938\u0942\u091A\u0928\u093E\u090F\u0901',
+            tabAppearance: '\u0926\u093F\u0916\u093E\u0935\u091F',
+            profileSettings: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            profileDesc: '\u0905\u092A\u0928\u0940 \u0935\u094D\u092F\u0915\u094D\u0924\u093F\u0917\u0924 \u091C\u093E\u0928\u0915\u093E\u0930\u0940 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            fullName: '\u092A\u0942\u0930\u093E \u0928\u093E\u092E',
+            emailAddress: '\u0908\u092E\u0947\u0932 \u092A\u0924\u093E',
+            phoneNumber: '\u092B\u094B\u0928 \u0928\u0902\u092C\u0930',
+            timezone: '\u0938\u092E\u092F \u0915\u094D\u0937\u0947\u0924\u094D\u0930',
+            saveChanges: '\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0938\u0939\u0947\u091C\u0947\u0902',
+            changePassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092C\u0926\u0932\u0947\u0902',
+            securitySettings: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            securityDesc: '\u092C\u0947\u0939\u0924\u0930 \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0915\u0947 \u0938\u093E\u0925 \u0905\u092A\u0928\u0947 \u0916\u093E\u0924\u0947 \u0915\u0940 \u0930\u0915\u094D\u0937\u093E \u0915\u0930\u0947\u0902',
+            twoFactorAuth: '\u0926\u094B-\u0915\u093E\u0930\u0915 \u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923',
+            twoFactorDesc: '2FA \u0915\u0947 \u0938\u093E\u0925 \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0915\u0940 \u090F\u0915 \u0905\u0924\u093F\u0930\u093F\u0915\u094D\u0924 \u092A\u0930\u0924 \u091C\u094B\u0921\u093C\u0947\u0902',
+            currentPassword: '\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            newPassword: '\u0928\u092F\u093E \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            confirmPassword: '\u0928\u092F\u093E \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0915\u0940 \u092A\u0941\u0937\u094D\u091F\u093F \u0915\u0930\u0947\u0902',
+            updatePassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u0947\u0902',
+            loginActivity: '\u0932\u0949\u0917\u093F\u0928 \u0917\u0924\u093F\u0935\u093F\u0927\u093F',
+            loginActivityDesc: '\u0906\u092A\u0915\u0947 \u0916\u093E\u0924\u0947 \u092E\u0947\u0902 \u0939\u093E\u0932 \u0915\u0947 \u0932\u0949\u0917\u093F\u0928',
+            activeDevices: '\u0938\u0915\u094D\u0930\u093F\u092F \u0909\u092A\u0915\u0930\u0923',
+            activeDevicesDesc: '\u0935\u0930\u094D\u0924\u092E\u093E\u0928 \u092E\u0947\u0902 \u0938\u093E\u0907\u0928 \u0907\u0928 \u0921\u093F\u0935\u093E\u0907\u0938',
+            revoke: '\u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902',
+            cloudSettings: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            cloudDesc: '\u0905\u092A\u0928\u0940 \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0938\u0947\u0935\u093E\u0913\u0902 \u0915\u094B \u0915\u0928\u0947\u0915\u094D\u091F \u0914\u0930 \u092A\u094D\u0930\u092C\u0902\u0927\u093F\u0924 \u0915\u0930\u0947\u0902',
+            connect: '\u0915\u0928\u0947\u0915\u094D\u091F',
+            disconnect: '\u0921\u093F\u0938\u094D\u0915\u0928\u0947\u0915\u094D\u091F',
+            apiKey: 'API \u0915\u0941\u0902\u091C\u0940',
+            projectId: '\u092A\u094D\u0930\u094B\u091C\u0947\u0915\u094D\u091F ID',
+            cloudName: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0928\u093E\u092E',
+            storagePrefs: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0930\u093E\u0925\u092E\u093F\u0915\u0924\u093E\u090F\u0901',
+            storageDesc: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u094D\u092F\u0935\u0939\u093E\u0930 \u0914\u0930 \u0938\u0940\u092E\u093E \u0915\u0949\u0928\u094D\u092B\u093C\u093F\u0917\u0930 \u0915\u0930\u0947\u0902',
+            defaultProvider: '\u0921\u093F\u092B\u0949\u0932\u094D\u091F \u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E',
+            autoBackup: '\u0911\u091F\u094B \u092C\u0948\u0915\u0905\u092A',
+            autoBackupDesc: '\u0938\u0947\u0915\u0947\u0902\u0921\u0930\u0940 \u0915\u094D\u0932\u093E\u0909\u0921 \u092E\u0947\u0902 \u0938\u094D\u0935\u091A\u093E\u0932\u093F\u0924 \u092C\u0948\u0915\u0905\u092A',
+            fileVersioning: '\u092B\u093E\u0907\u0932 \u0935\u0930\u094D\u091C\u0928\u093F\u0902\u0917',
+            fileVersioningDesc: '\u0905\u092A\u0932\u094B\u0921 \u0915\u0940 \u0917\u0908 \u092B\u093E\u0907\u0932\u094B\u0902 \u0915\u0947 \u092A\u0941\u0930\u093E\u0928\u0947 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0930\u0916\u0947\u0902',
+            storageUsage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0909\u092A\u092F\u094B\u0917',
+            notifSettings: '\u0938\u0942\u091A\u0928\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            notifDesc: '\u0906\u092A \u0915\u0948\u0938\u0947 \u0905\u0932\u0930\u094D\u091F \u0914\u0930 \u0905\u092A\u0921\u0947\u091F \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0924\u0947 \u0939\u0948\u0902 \u0928\u093F\u092F\u0902\u0924\u094D\u0930\u093F\u0924 \u0915\u0930\u0947\u0902',
+            emailNotif: '\u0908\u092E\u0947\u0932 \u0938\u0942\u091A\u0928\u093E\u090F\u0901',
+            emailNotifDesc: '\u0908\u092E\u0947\u0932 \u0926\u094D\u0935\u093E\u0930\u093E \u092E\u0939\u0924\u094D\u0935\u092A\u0942\u0930\u094D\u0923 \u0905\u092A\u0921\u0947\u091F \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0947\u0902',
+            uploadAlerts: '\u0905\u092A\u0932\u094B\u0921 \u0938\u092B\u0932\u0924\u093E \u0905\u0932\u0930\u094D\u091F',
+            uploadAlertsDesc: '\u092B\u093E\u0907\u0932 \u0905\u092A\u0932\u094B\u0921 \u092A\u0942\u0930\u093E \u0939\u094B\u0928\u0947 \u092A\u0930 \u0938\u0942\u091A\u0928\u093E \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0947\u0902',
+            securityAlerts: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0905\u0932\u0930\u094D\u091F',
+            securityAlertsDesc: '\u0938\u0902\u0926\u093F\u0917\u094D\u0927 \u0932\u0949\u0917\u093F\u0928 \u092A\u094D\u0930\u092F\u093E\u0938\u094B\u0902 \u092A\u0930 \u0905\u0932\u0930\u094D\u091F',
+            storageLimitWarn: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0938\u0940\u092E\u093E \u091A\u0947\u0924\u093E\u0935\u0928\u0940',
+            storageLimitDesc: '80% \u0915\u094D\u0937\u092E\u0924\u093E \u092A\u0930 \u0938\u0942\u091A\u093F\u0924 \u0915\u0930\u0947\u0902',
+            appearanceSettings: '\u0926\u093F\u0916\u093E\u0935\u091F \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
+            appearanceDesc: '\u0932\u0941\u0915 \u0914\u0930 \u0905\u0928\u0941\u092D\u0935 \u0915\u094B \u0915\u0938\u094D\u091F\u092E\u093E\u0907\u091C\u093C \u0915\u0930\u0947\u0902',
+            darkMode: '\u0921\u093E\u0930\u094D\u0915 \u092E\u094B\u0921',
+            darkModeDesc: '\u0932\u093E\u0907\u091F \u0914\u0930 \u0921\u093E\u0930\u094D\u0915 \u0925\u0940\u092E \u0915\u0947 \u092C\u0940\u091A \u0938\u094D\u0935\u093F\u091A \u0915\u0930\u0947\u0902',
+            dashboardLayout: '\u0921\u0948\u0936\u092C\u094B\u0930\u094D\u0921 \u0932\u0947\u0906\u0909\u091F',
+            layoutDefault: '\u0921\u093F\u092B\u0949\u0932\u094D\u091F',
+            layoutCompact: '\u0915\u0949\u092E\u094D\u092A\u0948\u0915\u094D\u091F',
+            layoutWide: '\u0935\u093E\u0907\u0921',
+            language: '\u092D\u093E\u0937\u093E',
+            secScoreTitle: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            secProfile: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 \u092A\u0942\u0930\u094D\u0923',
+            secPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u093F\u092F\u093E',
+            secNotifs: '\u0938\u0942\u091A\u0928\u093E\u090F\u0901 \u0938\u0915\u094D\u0937\u092E',
+            secProvider: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0928\u0947\u0915\u094D\u091F\u0947\u0921',
+            sec2fa: '2FA \u0938\u0915\u094D\u0937\u092E',
+            cancel: '\u0930\u0926\u094D\u0926 \u0915\u0930\u0947\u0902',
+            modalChangePass: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092C\u0926\u0932\u0947\u0902'
+        },
+        mr: {
+            settingsTitle: '\u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            settingsSubtitle: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u092A\u094D\u0930\u093E\u0927\u093E\u0928\u094D\u092F\u0947 \u0906\u0923\u093F \u0916\u093E\u0924\u0947 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            logout: '\u0932\u0949\u0917\u0906\u0909\u091F',
+            tabProfile: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932',
+            tabSecurity: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E',
+            tabCloud: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u0947',
+            tabStorage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C',
+            tabNotifications: '\u0938\u0942\u091A\u0928\u093E',
+            tabAppearance: '\u0926\u0947\u0916\u093E\u0935\u093E',
+            profileSettings: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            profileDesc: '\u0924\u0941\u092E\u091A\u0940 \u0935\u0948\u092F\u0915\u094D\u0924\u093F\u0915 \u092E\u093E\u0939\u093F\u0924\u0940 \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            fullName: '\u092A\u0942\u0930\u094D\u0923 \u0928\u093E\u0935',
+            emailAddress: '\u0908\u092E\u0947\u0932 \u092A\u0924\u094D\u0924\u093E',
+            phoneNumber: '\u092B\u094B\u0928 \u0928\u0902\u092C\u0930',
+            timezone: '\u0935\u0947\u0933 \u0915\u094D\u0937\u0947\u0924\u094D\u0930',
+            saveChanges: '\u092C\u0926\u0932 \u091C\u0924\u0928 \u0915\u0930\u093E',
+            changePassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092C\u0926\u0932\u093E',
+            securitySettings: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            securityDesc: '\u0935\u0930\u094D\u0927\u093F\u0924 \u0938\u0941\u0930\u0915\u094D\u0937\u0947\u0938\u0939 \u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0916\u093E\u0924\u094D\u092F\u093E\u091A\u0947 \u0938\u0902\u0930\u0915\u094D\u0937\u0923 \u0915\u0930\u093E',
+            twoFactorAuth: '\u0926\u094D\u0935\u093F-\u0918\u091F\u0915 \u092A\u094D\u0930\u092E\u093E\u0923\u0940\u0915\u0930\u0923',
+            twoFactorDesc: '2FA \u0938\u0939 \u0938\u0941\u0930\u0915\u094D\u0937\u0947\u091A\u093E \u0905\u0924\u093F\u0930\u093F\u0915\u094D\u0924 \u0938\u094D\u0924\u0930 \u091C\u094B\u0921\u093E',
+            currentPassword: '\u0938\u0927\u094D\u092F\u093E\u091A\u093E \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            newPassword: '\u0928\u0935\u0940\u0928 \u092A\u093E\u0938\u0935\u0930\u094D\u0921',
+            confirmPassword: '\u0928\u0935\u0940\u0928 \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0916\u093E\u0924\u094D\u0930\u0940 \u0915\u0930\u093E',
+            updatePassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u0930\u093E',
+            loginActivity: '\u0932\u0949\u0917\u093F\u0928 \u0915\u094D\u0930\u093F\u092F\u093E\u0915\u0932\u093E\u092A',
+            loginActivityDesc: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0916\u093E\u0924\u094D\u092F\u093E\u0924\u0940\u0932 \u0905\u0932\u0940\u0915\u0921\u0940\u0932 \u0932\u0949\u0917\u093F\u0928',
+            activeDevices: '\u0938\u0915\u094D\u0930\u093F\u092F \u0909\u092A\u0915\u0930\u0923\u0947',
+            activeDevicesDesc: '\u0938\u0927\u094D\u092F\u093E \u0938\u093E\u0907\u0928 \u0907\u0928 \u0905\u0938\u0932\u0947\u0932\u0940 \u0909\u092A\u0915\u0930\u0923\u0947',
+            revoke: '\u0930\u0926\u094D\u0926 \u0915\u0930\u093E',
+            cloudSettings: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u0947 \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            cloudDesc: '\u0924\u0941\u092E\u091A\u094D\u092F\u093E \u0915\u094D\u0932\u093E\u0909\u0921 \u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0938\u0947\u0935\u093E \u0915\u0928\u0947\u0915\u094D\u091F \u0906\u0923\u093F \u0935\u094D\u092F\u0935\u0938\u094D\u0925\u093E\u092A\u093F\u0924 \u0915\u0930\u093E',
+            connect: '\u0915\u0928\u0947\u0915\u094D\u091F',
+            disconnect: '\u0921\u093F\u0938\u094D\u0915\u0928\u0947\u0915\u094D\u091F',
+            apiKey: 'API \u0915\u0940',
+            projectId: '\u092A\u094D\u0930\u094B\u091C\u0947\u0915\u094D\u091F ID',
+            cloudName: '\u0915\u094D\u0932\u093E\u0909\u0921 \u0928\u093E\u0935',
+            storagePrefs: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092A\u094D\u0930\u093E\u0927\u093E\u0928\u094D\u092F\u0947',
+            storageDesc: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u0930\u094D\u0924\u0928 \u0906\u0923\u093F \u092E\u0930\u094D\u092F\u093E\u0926\u093E \u0915\u0949\u0928\u094D\u092B\u093F\u0917\u0930 \u0915\u0930\u093E',
+            defaultProvider: '\u0921\u093F\u092B\u0949\u0932\u094D\u091F \u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E',
+            autoBackup: '\u0911\u091F\u094B \u092C\u0945\u0915\u0905\u092A',
+            autoBackupDesc: '\u0926\u0941\u092F\u094D\u092F\u092E \u0915\u094D\u0932\u093E\u0909\u0921\u0935\u0930 \u0938\u094D\u0935\u092F\u0902\u091A\u0932\u093F\u0924 \u092C\u0945\u0915\u0905\u092A',
+            fileVersioning: '\u092B\u093E\u0907\u0932 \u0935\u094D\u0939\u0930\u094D\u091C\u0928\u093F\u0902\u0917',
+            fileVersioningDesc: '\u0905\u092A\u0932\u094B\u0921 \u0915\u0947\u0932\u0947\u0932\u094D\u092F\u093E \u092B\u093E\u0907\u0932\u094D\u0938\u091A\u0947 \u091C\u0941\u0928\u0947 \u0935\u094D\u0939\u0930\u094D\u091C\u0928 \u0920\u0947\u0935\u093E',
+            storageUsage: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u0935\u093E\u092A\u0930',
+            notifSettings: '\u0938\u0942\u091A\u0928\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            notifDesc: '\u0924\u0941\u092E\u094D\u0939\u093E\u0932\u093E \u0905\u0932\u0930\u094D\u091F \u0906\u0923\u093F \u0905\u092A\u0921\u0947\u091F \u0915\u0938\u0947 \u092E\u093F\u0933\u0924\u093E\u0924 \u0924\u0947 \u0928\u093F\u092F\u0902\u0924\u094D\u0930\u093F\u0924 \u0915\u0930\u093E',
+            emailNotif: '\u0908\u092E\u0947\u0932 \u0938\u0942\u091A\u0928\u093E',
+            emailNotifDesc: '\u0908\u092E\u0947\u0932\u0926\u094D\u0935\u093E\u0930\u0947 \u092E\u0939\u0924\u094D\u0924\u094D\u0935\u093E\u091A\u0947 \u0905\u092A\u0921\u0947\u091F \u092E\u093F\u0933\u0935\u093E',
+            uploadAlerts: '\u0905\u092A\u0932\u094B\u0921 \u092F\u0936\u0938\u094D\u0935\u0940 \u0905\u0932\u0930\u094D\u091F',
+            uploadAlertsDesc: '\u092B\u093E\u0907\u0932 \u0905\u092A\u0932\u094B\u0921 \u092A\u0942\u0930\u094D\u0923 \u091D\u093E\u0932\u094D\u092F\u093E\u0935\u0930 \u0938\u0942\u091A\u0928\u093E \u092E\u093F\u0933\u0935\u093E',
+            securityAlerts: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0905\u0932\u0930\u094D\u091F',
+            securityAlertsDesc: '\u0938\u0902\u0936\u092F\u093E\u0938\u094D\u092A\u0926 \u0932\u0949\u0917\u093F\u0928 \u092A\u094D\u0930\u092F\u0924\u094D\u0928\u093E\u0902\u0935\u0930 \u0905\u0932\u0930\u094D\u091F',
+            storageLimitWarn: '\u0938\u094D\u091F\u094B\u0930\u0947\u091C \u092E\u0930\u094D\u092F\u093E\u0926\u093E \u091A\u0947\u0924\u093E\u0935\u0923\u0940',
+            storageLimitDesc: '80% \u0915\u094D\u0937\u092E\u0924\u0947\u0935\u0930 \u0938\u0942\u091A\u093F\u0924 \u0915\u0930\u093E',
+            appearanceSettings: '\u0926\u0947\u0916\u093E\u0935\u093E \u0938\u0947\u091F\u093F\u0902\u0917\u094D\u091C',
+            appearanceDesc: '\u0926\u093F\u0938\u0923\u0947 \u0906\u0923\u093F \u0905\u0928\u0941\u092D\u0935 \u0938\u0915\u0938\u094D\u091F\u092E\u093E\u0907\u091D \u0915\u0930\u093E',
+            darkMode: '\u0921\u093E\u0930\u094D\u0915 \u092E\u094B\u0921',
+            darkModeDesc: '\u0932\u093E\u0907\u091F \u0906\u0923\u093F \u0921\u093E\u0930\u094D\u0915 \u0925\u0940\u092E \u092E\u0927\u094D\u092F\u0947 \u0938\u094D\u0935\u093F\u091A \u0915\u0930\u093E',
+            dashboardLayout: '\u0921\u0945\u0936\u092C\u094B\u0930\u094D\u0921 \u0932\u0947\u0906\u0909\u091F',
+            layoutDefault: '\u0921\u093F\u092B\u0949\u0932\u094D\u091F',
+            layoutCompact: '\u0915\u0949\u092E\u094D\u092A\u0945\u0915\u094D\u091F',
+            layoutWide: '\u0935\u093E\u0907\u0921',
+            language: '\u092D\u093E\u0937\u093E',
+            secScoreTitle: '\u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u094D\u0915\u094B\u0930',
+            secProfile: '\u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 \u092A\u0942\u0930\u094D\u0923',
+            secPassword: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u0905\u092A\u0921\u0947\u091F \u0915\u0947\u0932\u093E',
+            secNotifs: '\u0938\u0942\u091A\u0928\u093E \u0938\u0915\u094D\u0937\u092E',
+            secProvider: '\u0915\u094D\u0932\u093E\u0909\u0921 \u092A\u094D\u0930\u0926\u093E\u0924\u093E \u0915\u0928\u0947\u0915\u094D\u091F\u0947\u0921',
+            sec2fa: '2FA \u0938\u0915\u094D\u0937\u092E',
+            cancel: '\u0930\u0926\u094D\u0926 \u0915\u0930\u093E',
+            modalChangePass: '\u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092C\u0926\u0932\u093E'
+        }
+    };
+
+    // Mapping: data-i18n attribute → translation key, applied to textContent
+    var i18nMap = [
+        { sel: '#settings-view > header h2', key: 'settingsTitle' },
+        { sel: '#settings-view > header .muted', key: 'settingsSubtitle' },
+        { sel: '#logout-btn-settings', key: 'logout' },
+        { sel: '.stg-tab[data-stg="profile"]', key: 'tabProfile', mode: 'lastChild' },
+        { sel: '.stg-tab[data-stg="security"]', key: 'tabSecurity', mode: 'lastChild' },
+        { sel: '.stg-tab[data-stg="cloud"]', key: 'tabCloud', mode: 'lastChild' },
+        { sel: '.stg-tab[data-stg="storage"]', key: 'tabStorage', mode: 'lastChild' },
+        { sel: '.stg-tab[data-stg="notifications"]', key: 'tabNotifications', mode: 'lastChild' },
+        { sel: '.stg-tab[data-stg="appearance"]', key: 'tabAppearance', mode: 'lastChild' },
+        { sel: '#stg-profile .stg-card-header h3', key: 'profileSettings' },
+        { sel: '#stg-profile .stg-card-header .muted', key: 'profileDesc' },
+        { sel: '#stg-profile label[for="stg-name"], #stg-name ~ label, #stg-profile .stg-field:nth-child(1) label', key: 'fullName', mode: 'firstLabel' },
+        { sel: '#stg-save-profile', key: 'saveChanges' },
+        { sel: '#stg-change-password-link', key: 'changePassword' },
+        { sel: '#stg-security .stg-card-header h3', key: 'securitySettings' },
+        { sel: '#stg-security .stg-card-header .muted', key: 'securityDesc' },
+        { sel: '#stg-update-pass', key: 'updatePassword' },
+        { sel: '#stg-cloud .stg-card-header h3', key: 'cloudSettings' },
+        { sel: '#stg-cloud .stg-card-header .muted', key: 'cloudDesc' },
+        { sel: '#stg-storage .stg-card-header h3', key: 'storagePrefs' },
+        { sel: '#stg-storage .stg-card-header .muted', key: 'storageDesc' },
+        { sel: '#stg-notifications .stg-card-header h3', key: 'notifSettings' },
+        { sel: '#stg-notifications .stg-card-header .muted', key: 'notifDesc' },
+        { sel: '#stg-appearance .stg-card-header h3', key: 'appearanceSettings' },
+        { sel: '#stg-appearance .stg-card-header .muted', key: 'appearanceDesc' },
+        { sel: '#stg-password-modal .stg-modal-header h3', key: 'modalChangePass' },
+        { sel: '#stg-modal-cancel', key: 'cancel' },
+        { sel: '#stg-modal-submit', key: 'updatePassword' }
+    ];
+
+    function changeLanguage(lang) {
+        var dict = translations[lang] || translations.en;
+        // Apply mapped translations
+        i18nMap.forEach(function(item) {
+            var el = document.querySelector(item.sel);
+            if (!el) return;
+            if (item.mode === 'lastChild') {
+                // For tabs: the last text node (after the SVG)
+                var nodes = el.childNodes;
+                for (var i = nodes.length - 1; i >= 0; i--) {
+                    if (nodes[i].nodeType === 3 && nodes[i].textContent.trim()) {
+                        nodes[i].textContent = '\n            ' + dict[item.key] + '\n          ';
+                        break;
+                    }
+                }
+            } else {
+                el.textContent = dict[item.key];
+            }
+        });
+
+        // Translate toggle rows via data mapping
+        var toggleTranslations = {
+            'stg-2fa-toggle': { title: 'twoFactorAuth', desc: 'twoFactorDesc' },
+            'stg-auto-backup': { title: 'autoBackup', desc: 'autoBackupDesc' },
+            'stg-versioning': { title: 'fileVersioning', desc: 'fileVersioningDesc' },
+            'stg-email-notif': { title: 'emailNotif', desc: 'emailNotifDesc' },
+            'stg-upload-notif': { title: 'uploadAlerts', desc: 'uploadAlertsDesc' },
+            'stg-security-notif': { title: 'securityAlerts', desc: 'securityAlertsDesc' },
+            'stg-storage-notif': { title: 'storageLimitWarn', desc: 'storageLimitDesc' },
+            'stg-dark-toggle': { title: 'darkMode', desc: 'darkModeDesc' }
+        };
+        Object.keys(toggleTranslations).forEach(function(id) {
+            var toggle = document.getElementById(id);
+            if (!toggle) return;
+            var row = toggle.closest('.stg-toggle-row');
+            if (!row) return;
+            var titleEl = row.querySelector('.stg-toggle-title');
+            var descEl = row.querySelector('.stg-toggle-desc');
+            if (titleEl) titleEl.textContent = dict[toggleTranslations[id].title];
+            if (descEl) descEl.textContent = dict[toggleTranslations[id].desc];
+        });
+
+        // Translate layout labels
+        document.querySelectorAll('.stg-layout-opt').forEach(function(opt) {
+            var layout = opt.dataset.layout;
+            var span = opt.querySelector('span');
+            if (span && layout === 'default') span.textContent = dict.layoutDefault;
+            if (span && layout === 'compact') span.textContent = dict.layoutCompact;
+            if (span && layout === 'wide') span.textContent = dict.layoutWide;
+        });
+
+        // Translate subsection headings
+        var subheadings = {
+            'Change Password': 'changePassword',
+            'Login Activity': 'loginActivity',
+            'Active Devices': 'activeDevices',
+            'Dashboard Layout': 'dashboardLayout',
+            'Storage Usage': 'storageUsage'
+        };
+        document.querySelectorAll('#settings-view .stg-subsection h4').forEach(function(h4) {
+            Object.keys(subheadings).forEach(function(engText) {
+                // Match either english or current text via key lookup
+                var key = subheadings[engText];
+                if (h4.textContent.trim() === engText || h4.dataset.i18nKey === key) {
+                    h4.textContent = dict[key];
+                    h4.dataset.i18nKey = key;
+                }
+            });
+        });
+
+        // Translate labels above the language and default provider selects
+        var langLabel = document.getElementById('stg-language');
+        if (langLabel && langLabel.parentNode) {
+            var lbl = langLabel.parentNode.querySelector('label');
+            if (lbl) lbl.textContent = dict.language;
+        }
+        var dpLabel = document.getElementById('stg-default-provider');
+        if (dpLabel && dpLabel.parentNode) {
+            var lbl2 = dpLabel.parentNode.querySelector('label');
+            if (lbl2) lbl2.textContent = dict.defaultProvider;
+        }
+
+        // Translate form field labels via their associated input IDs
+        var fieldLabels = {
+            'stg-name': 'fullName',
+            'stg-email': 'emailAddress',
+            'stg-phone': 'phoneNumber',
+            'stg-timezone': 'timezone',
+            'stg-cur-pass': 'currentPassword',
+            'stg-new-pass': 'newPassword',
+            'stg-confirm-pass': 'confirmPassword',
+            'stg-modal-cur-pass': 'currentPassword',
+            'stg-modal-new-pass': 'newPassword',
+            'stg-modal-confirm-pass': 'confirmPassword'
+        };
+        Object.keys(fieldLabels).forEach(function(id) {
+            var input = document.getElementById(id);
+            if (!input) return;
+            var field = input.closest('.stg-field');
+            if (!field) return;
+            var lbl3 = field.querySelector('label');
+            if (lbl3) lbl3.textContent = dict[fieldLabels[id]];
+        });
+
+        // Translate cloud provider field labels and buttons
+        var providerLabels = { aws: 'apiKey', firebase: 'projectId', cloudinary: 'cloudName', supabase: 'apiKey' };
+        Object.keys(providerLabels).forEach(function(prov) {
+            var card = document.querySelector('.stg-provider-card[data-provider="' + prov + '"]');
+            if (!card) return;
+            var lbl4 = card.querySelector('.stg-field label');
+            if (lbl4) lbl4.textContent = dict[providerLabels[prov]];
+        });
+        document.querySelectorAll('.stg-provider-toggle').forEach(function(btn) {
+            if (btn.disabled) return;
+            var card = btn.closest('.stg-provider-card');
+            var connected = card && card.classList.contains('stg-provider-connected');
+            btn.textContent = connected ? dict.disconnect : dict.connect;
+        });
+        document.querySelectorAll('.stg-btn-danger-sm[data-device]').forEach(function(btn) {
+            btn.textContent = dict.revoke;
+        });
+
+        // Update security score labels
+        updateSecurityScore();
+
+        // Apply language to all other views (sidebar, dashboard, upload, etc.)
+        if (typeof window.applyGlobalLanguage === 'function') {
+            window.applyGlobalLanguage(lang);
+        }
+
+        saveSettings({ language: lang });
+        var langNames = { en: 'English', hi: '\u0939\u093F\u0902\u0926\u0940', mr: '\u092E\u0930\u093E\u0920\u0940' };
+        showToast('Language: ' + (langNames[lang] || lang), 'info');
+    }
+
+    // ════════════════════════════
+    //  2. TAB SWITCHING
+    // ════════════════════════════
     var stgTabs = document.querySelectorAll('.stg-tab');
     var stgSections = document.querySelectorAll('.stg-section');
 
@@ -1293,14 +2403,14 @@ console.log('🎨 Enhanced animations loaded!');
             saveSettings({ lastTab: target });
         });
     });
-
-    // Restore last tab
     if (saved.lastTab) {
         var savedTab = document.querySelector('.stg-tab[data-stg="' + saved.lastTab + '"]');
         if (savedTab) savedTab.click();
     }
 
-    // ── Sync Profile from Firebase ──
+    // ════════════════════════════
+    //  3. PROFILE SETTINGS
+    // ════════════════════════════
     function syncSettingsProfile() {
         var user = (state && state.user) ? state.user : null;
         var firebaseUser = window.auth && window.auth.currentUser;
@@ -1337,6 +2447,7 @@ console.log('🎨 Enhanced animations loaded!');
     if (settingsNavBtn) settingsNavBtn.addEventListener('click', function() {
         syncSettingsProfile();
         syncStorageBar();
+        updateSecurityScore();
     });
     syncSettingsProfile();
 
@@ -1368,81 +2479,238 @@ console.log('🎨 Enhanced animations loaded!');
         });
     }
 
-    // ── Save Profile ──
+    // ── Save Profile (with dirty-state tracking) ──
     var saveProfileBtn = document.getElementById('stg-save-profile');
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', function() {
-            var nameEl = document.getElementById('stg-name');
-            var emailEl = document.getElementById('stg-email');
-            var phoneEl = document.getElementById('stg-phone');
-            var tzEl = document.getElementById('stg-timezone');
-            var name = nameEl ? nameEl.value : '';
-            var email = emailEl ? emailEl.value : '';
-            var phone = phoneEl ? phoneEl.value : '';
-            var timezone = tzEl ? tzEl.value : '';
+    var profileFields = ['stg-name', 'stg-email', 'stg-phone', 'stg-timezone'];
+    var profileSnapshot = {};
 
-            if (!name.trim()) { showToast('Name cannot be empty', 'error'); return; }
-            if (!email.trim() || email.indexOf('@') === -1) { showToast('Enter a valid email', 'error'); return; }
+    function captureProfileSnapshot() {
+        profileFields.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) profileSnapshot[id] = el.value;
+        });
+    }
 
-            var dn = document.getElementById('stg-display-name');
-            var de = document.getElementById('stg-display-email');
-            if (dn) dn.textContent = name;
-            if (de) de.textContent = email;
-            if (userName) userName.textContent = name;
+    function checkProfileDirty() {
+        if (!saveProfileBtn) return;
+        var dirty = false;
+        profileFields.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && el.value !== (profileSnapshot[id] || '')) dirty = true;
+        });
+        if (dirty) {
+            saveProfileBtn.classList.remove('stg-btn-disabled');
+        } else {
+            saveProfileBtn.classList.add('stg-btn-disabled');
+        }
+    }
 
-            var avPrev = document.getElementById('stg-avatar-preview');
-            if (avPrev && !saved.avatarData) {
-                var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-                avPrev.innerHTML = '<span style="font-size:24px;font-weight:800;color:var(--accent)">' + initials + '</span>';
+    profileFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', checkProfileDirty);
+        if (el) el.addEventListener('change', checkProfileDirty);
+    });
+
+    function saveProfile() {
+        var nameEl = document.getElementById('stg-name');
+        var emailEl = document.getElementById('stg-email');
+        var phoneEl = document.getElementById('stg-phone');
+        var tzEl = document.getElementById('stg-timezone');
+        var name = nameEl ? nameEl.value : '';
+        var email = emailEl ? emailEl.value : '';
+        var phone = phoneEl ? phoneEl.value : '';
+        var timezone = tzEl ? tzEl.value : '';
+
+        if (!name.trim()) {
+            showToast('Name cannot be empty', 'error');
+            shakeElement(nameEl);
+            return;
+        }
+        if (!email.trim() || email.indexOf('@') === -1) {
+            showToast('Enter a valid email', 'error');
+            shakeElement(emailEl);
+            return;
+        }
+
+        var dn = document.getElementById('stg-display-name');
+        var de = document.getElementById('stg-display-email');
+        if (dn) dn.textContent = name;
+        if (de) de.textContent = email;
+        if (typeof userName !== 'undefined' && userName) userName.textContent = name;
+
+        var avPrev = document.getElementById('stg-avatar-preview');
+        if (avPrev && !avPrev.querySelector('img')) {
+            var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+            avPrev.innerHTML = '<span style="font-size:24px;font-weight:800;color:var(--accent)">' + initials + '</span>';
+        }
+
+        saveSettings({ profileName: name, profileEmail: email, profilePhone: phone, profileTimezone: timezone });
+        captureProfileSnapshot();
+        checkProfileDirty();
+
+        saveProfileBtn.textContent = 'Saved \u2713';
+        saveProfileBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+        setTimeout(function() {
+            var s = loadSettings();
+            var lang = s.language || 'en';
+            var dict = translations[lang] || translations.en;
+            saveProfileBtn.textContent = dict.saveChanges;
+            saveProfileBtn.style.background = '';
+        }, 2000);
+        showToast('Profile saved successfully!', 'success');
+    }
+
+    if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
+    captureProfileSnapshot();
+    checkProfileDirty();
+
+    // ════════════════════════════════
+    //  4. CHANGE PASSWORD MODAL
+    // ════════════════════════════════
+    var passwordModal = document.getElementById('stg-password-modal');
+    var modalCloseBtn = document.getElementById('stg-modal-close');
+    var modalCancelBtn = document.getElementById('stg-modal-cancel');
+    var modalSubmitBtn = document.getElementById('stg-modal-submit');
+    var modalPassMsg = document.getElementById('stg-modal-pass-msg');
+
+    function openPasswordModal() {
+        if (passwordModal) {
+            passwordModal.classList.add('active');
+            setTimeout(function() {
+                var cur = document.getElementById('stg-modal-cur-pass');
+                if (cur) cur.focus();
+            }, 350);
+        }
+    }
+
+    function closePasswordModal() {
+        if (passwordModal) {
+            passwordModal.classList.remove('active');
+            // Clear fields
+            ['stg-modal-cur-pass', 'stg-modal-new-pass', 'stg-modal-confirm-pass'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            if (modalPassMsg) {
+                modalPassMsg.textContent = '';
+                modalPassMsg.className = 'stg-msg';
+            }
+        }
+    }
+
+    // Open modal from both the profile link and the security inline button
+    var cpLink = document.getElementById('stg-change-password-link');
+    if (cpLink) cpLink.addEventListener('click', openPasswordModal);
+
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closePasswordModal);
+    if (modalCancelBtn) modalCancelBtn.addEventListener('click', closePasswordModal);
+    if (passwordModal) {
+        passwordModal.addEventListener('click', function(e) {
+            if (e.target === passwordModal) closePasswordModal();
+        });
+    }
+
+    // Password strength meter for the modal
+    var modalNewPass = document.getElementById('stg-modal-new-pass');
+    if (modalNewPass) {
+        if (!document.getElementById('stg-modal-pass-strength')) {
+            var bar = document.createElement('div');
+            bar.id = 'stg-modal-pass-strength';
+            bar.className = 'stg-pass-strength';
+            bar.innerHTML = '<div class="stg-pass-strength-fill" id="stg-modal-strength-fill"></div><span class="stg-pass-strength-label" id="stg-modal-strength-label"></span>';
+            modalNewPass.parentNode.appendChild(bar);
+        }
+        modalNewPass.addEventListener('input', function() {
+            var val = modalNewPass.value;
+            var fill = document.getElementById('stg-modal-strength-fill');
+            var label = document.getElementById('stg-modal-strength-label');
+            if (!fill || !label) return;
+            var score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            var levels = [
+                { w: '0%', color: '#94a3b8', text: '' },
+                { w: '20%', color: '#ef4444', text: 'Weak' },
+                { w: '40%', color: '#f97316', text: 'Fair' },
+                { w: '60%', color: '#eab308', text: 'Good' },
+                { w: '80%', color: '#22c55e', text: 'Strong' },
+                { w: '100%', color: '#059669', text: 'Excellent' }
+            ];
+            var lv = levels[score];
+            fill.style.width = lv.w;
+            fill.style.background = lv.color;
+            label.textContent = lv.text;
+            label.style.color = lv.color;
+        });
+    }
+
+    if (modalSubmitBtn) {
+        modalSubmitBtn.addEventListener('click', function() {
+            var curEl = document.getElementById('stg-modal-cur-pass');
+            var npEl = document.getElementById('stg-modal-new-pass');
+            var cpEl = document.getElementById('stg-modal-confirm-pass');
+            var cur = curEl ? curEl.value : '';
+            var np = npEl ? npEl.value : '';
+            var cp = cpEl ? cpEl.value : '';
+
+            if (!cur || !np || !cp) {
+                if (modalPassMsg) {
+                    modalPassMsg.textContent = 'Please fill all fields.';
+                    modalPassMsg.className = 'stg-msg stg-msg-error';
+                }
+                return;
+            }
+            if (np.length < 6) {
+                if (modalPassMsg) {
+                    modalPassMsg.textContent = 'Password must be at least 6 characters.';
+                    modalPassMsg.className = 'stg-msg stg-msg-error';
+                }
+                shakeElement(npEl);
+                return;
+            }
+            if (np !== cp) {
+                if (modalPassMsg) {
+                    modalPassMsg.textContent = 'New passwords do not match.';
+                    modalPassMsg.className = 'stg-msg stg-msg-error';
+                }
+                shakeElement(cpEl);
+                return;
             }
 
-            saveSettings({ profileName: name, profileEmail: email, profilePhone: phone, profileTimezone: timezone });
-
-            saveProfileBtn.textContent = 'Saved \u2713';
-            saveProfileBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+            // Success
+            saveSettings({ passwordUpdated: true, passwordUpdatedAt: Date.now() });
+            if (modalPassMsg) {
+                modalPassMsg.textContent = 'Password updated successfully!';
+                modalPassMsg.className = 'stg-msg stg-msg-success';
+            }
+            modalSubmitBtn.textContent = 'Updated \u2713';
+            modalSubmitBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
             setTimeout(function() {
-                saveProfileBtn.textContent = 'Save Changes';
-                saveProfileBtn.style.background = '';
-            }, 2000);
-            showToast('Profile saved successfully!', 'success');
+                closePasswordModal();
+                var s = loadSettings();
+                var dict = translations[s.language || 'en'] || translations.en;
+                modalSubmitBtn.textContent = dict.updatePassword;
+                modalSubmitBtn.style.background = '';
+            }, 1500);
+            showToast('Password updated!', 'success');
         });
     }
 
-    // ── Change Password Link → Jump to Security tab ──
-    var cpLink = document.getElementById('stg-change-password-link');
-    if (cpLink) {
-        cpLink.addEventListener('click', function() {
-            var secTab = document.querySelector('.stg-tab[data-stg="security"]');
-            if (secTab) secTab.click();
-            setTimeout(function() {
-                var curPass = document.getElementById('stg-cur-pass');
-                if (curPass) curPass.focus();
-            }, 400);
-        });
-    }
-
-    // ── 2FA Toggle (persisted) ──
-    var tfa = document.getElementById('stg-2fa-toggle');
-    if (tfa) {
-        if (saved.twoFactorEnabled) tfa.checked = true;
-        tfa.addEventListener('change', function() {
-            saveSettings({ twoFactorEnabled: tfa.checked });
-            showToast(tfa.checked ? 'Two-Factor Authentication enabled' : 'Two-Factor Authentication disabled', tfa.checked ? 'success' : 'info');
-        });
-    }
-
-    // ── Password Strength Meter ──
-    var newPassInput = document.getElementById('stg-new-pass');
-    if (newPassInput) {
+    // Also keep the inline password form in Security tab working
+    var inlineNewPass = document.getElementById('stg-new-pass');
+    if (inlineNewPass) {
         if (!document.getElementById('stg-pass-strength')) {
-            var bar = document.createElement('div');
-            bar.id = 'stg-pass-strength';
-            bar.className = 'stg-pass-strength';
-            bar.innerHTML = '<div class="stg-pass-strength-fill" id="stg-pass-strength-fill"></div><span class="stg-pass-strength-label" id="stg-pass-strength-label"></span>';
-            newPassInput.parentNode.appendChild(bar);
+            var bar2 = document.createElement('div');
+            bar2.id = 'stg-pass-strength';
+            bar2.className = 'stg-pass-strength';
+            bar2.innerHTML = '<div class="stg-pass-strength-fill" id="stg-pass-strength-fill"></div><span class="stg-pass-strength-label" id="stg-pass-strength-label"></span>';
+            inlineNewPass.parentNode.appendChild(bar2);
         }
-        newPassInput.addEventListener('input', function() {
-            var val = newPassInput.value;
+        inlineNewPass.addEventListener('input', function() {
+            var val = inlineNewPass.value;
             var fill = document.getElementById('stg-pass-strength-fill');
             var label = document.getElementById('stg-pass-strength-label');
             if (!fill || !label) return;
@@ -1468,7 +2736,6 @@ console.log('🎨 Enhanced animations loaded!');
         });
     }
 
-    // ── Change Password ──
     var updatePassBtn = document.getElementById('stg-update-pass');
     var passMsg = document.getElementById('stg-pass-msg');
     if (updatePassBtn) {
@@ -1499,8 +2766,10 @@ console.log('🎨 Enhanced animations loaded!');
                     passMsg.textContent = 'Password must be at least 6 characters.';
                     passMsg.className = 'stg-msg stg-msg-error';
                 }
+                shakeElement(npEl);
                 return;
             }
+            saveSettings({ passwordUpdated: true, passwordUpdatedAt: Date.now() });
             if (passMsg) {
                 passMsg.textContent = 'Password updated successfully!';
                 passMsg.className = 'stg-msg stg-msg-success';
@@ -1508,7 +2777,9 @@ console.log('🎨 Enhanced animations loaded!');
             updatePassBtn.textContent = 'Updated \u2713';
             updatePassBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
             setTimeout(function() {
-                updatePassBtn.textContent = 'Update Password';
+                var s = loadSettings();
+                var dict = translations[s.language || 'en'] || translations.en;
+                updatePassBtn.textContent = dict.updatePassword;
                 updatePassBtn.style.background = '';
             }, 2500);
             if (curEl) curEl.value = '';
@@ -1522,7 +2793,21 @@ console.log('🎨 Enhanced animations loaded!');
         });
     }
 
-    // ── Revoke Device (animated removal) ──
+    // ════════════════════════════
+    //  5. 2FA TOGGLE
+    // ════════════════════════════
+    var tfa = document.getElementById('stg-2fa-toggle');
+    if (tfa) {
+        if (saved.twoFactorEnabled) tfa.checked = true;
+        tfa.addEventListener('change', function() {
+            saveSettings({ twoFactorEnabled: tfa.checked });
+            showToast(tfa.checked ? 'Two-Factor Authentication enabled' : 'Two-Factor Authentication disabled', tfa.checked ? 'success' : 'info');
+        });
+    }
+
+    // ════════════════════════════
+    //  6. DEVICE REVOKE
+    // ════════════════════════════
     document.querySelectorAll('.stg-btn-danger-sm[data-device]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var device = btn.dataset.device;
@@ -1546,55 +2831,107 @@ console.log('🎨 Enhanced animations loaded!');
         });
     });
 
-    // ── Cloud Provider Connect / Disconnect ──
-    document.querySelectorAll('.stg-provider-toggle').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var provider = btn.dataset.provider;
-            var card = btn.closest('.stg-provider-card');
-            var statusEl = document.getElementById('stg-' + provider + '-status');
-            var isConnected = statusEl && statusEl.textContent.trim() === 'Connected';
+    // ════════════════════════════════════
+    //  7. CLOUD PROVIDER CONNECT/DISCONNECT
+    // ════════════════════════════════════
+    function connectProvider(provider, btn) {
+        var card = btn.closest('.stg-provider-card');
+        var statusEl = document.getElementById('stg-' + provider + '-status');
+        var isConnected = statusEl && statusEl.textContent.trim() === 'Connected';
+        var s = loadSettings();
+        var dict = translations[s.language || 'en'] || translations.en;
 
-            if (isConnected) {
+        if (isConnected) {
+            if (statusEl) {
+                statusEl.textContent = 'Not Connected';
+                statusEl.className = 'stg-badge stg-badge-muted';
+            }
+            btn.textContent = dict.connect;
+            btn.className = 'stg-btn-primary stg-provider-toggle';
+            btn.style.width = '100%';
+            btn.style.marginTop = '10px';
+            if (card) card.classList.remove('stg-provider-connected');
+            saveSettings({
+                ['provider_' + provider]: false
+            });
+            showToast(capitalize(provider) + ' disconnected', 'info');
+        } else {
+            var keyInput = card ? card.querySelector('.stg-api-key') : null;
+            if (keyInput && !keyInput.value.trim()) {
+                showToast('Please enter an API key / ID first', 'error');
+                shakeElement(keyInput);
+                if (keyInput.focus) keyInput.focus();
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="stg-spinner"></span> Connecting...';
+            setTimeout(function() {
+                btn.disabled = false;
                 if (statusEl) {
-                    statusEl.textContent = 'Not Connected';
-                    statusEl.className = 'stg-badge stg-badge-muted';
+                    statusEl.textContent = 'Connected';
+                    statusEl.className = 'stg-badge stg-badge-ok';
                 }
-                btn.textContent = 'Connect';
-                btn.className = 'stg-btn-primary stg-provider-toggle';
+                btn.textContent = dict.disconnect;
+                btn.className = 'stg-btn-danger-sm stg-provider-toggle';
                 btn.style.width = '100%';
                 btn.style.marginTop = '10px';
-                if (card) card.classList.remove('stg-provider-connected');
+                if (card) card.classList.add('stg-provider-connected');
+                var keyVal = keyInput ? keyInput.value : '';
                 saveSettings({
-                    ['provider_' + provider]: false
+                    ['provider_' + provider]: true,
+                    ['apikey_' + provider]: keyVal
                 });
-                showToast(capitalize(provider) + ' disconnected', 'info');
-            } else {
-                var keyInput = card ? card.querySelector('.stg-api-key') : null;
-                if (keyInput && !keyInput.value.trim()) {
-                    showToast('Please enter an API key / ID first', 'error');
-                    shakeElement(keyInput);
-                    if (keyInput.focus) keyInput.focus();
-                    return;
+                showToast(capitalize(provider) + ' connected successfully!', 'success');
+            }, 1200);
+        }
+    }
+
+    // Restore provider states from localStorage
+    ['aws', 'firebase', 'cloudinary', 'supabase'].forEach(function(p) {
+        var key = 'provider_' + p;
+        if (saved[key] !== undefined) {
+            var statusEl = document.getElementById('stg-' + p + '-status');
+            var card = document.querySelector('.stg-provider-card[data-provider="' + p + '"]');
+            var btn = card ? card.querySelector('.stg-provider-toggle') : null;
+            if (saved[key]) {
+                if (statusEl) {
+                    statusEl.textContent = 'Connected';
+                    statusEl.className = 'stg-badge stg-badge-ok';
                 }
-                btn.disabled = true;
-                btn.innerHTML = '<span class="stg-spinner"></span> Connecting...';
-                setTimeout(function() {
-                    btn.disabled = false;
-                    if (statusEl) {
-                        statusEl.textContent = 'Connected';
-                        statusEl.className = 'stg-badge stg-badge-ok';
-                    }
+                if (btn) {
                     btn.textContent = 'Disconnect';
                     btn.className = 'stg-btn-danger-sm stg-provider-toggle';
                     btn.style.width = '100%';
                     btn.style.marginTop = '10px';
-                    if (card) card.classList.add('stg-provider-connected');
-                    saveSettings({
-                        ['provider_' + provider]: true
-                    });
-                    showToast(capitalize(provider) + ' connected successfully!', 'success');
-                }, 1200);
+                }
+                if (card) card.classList.add('stg-provider-connected');
+            } else {
+                if (statusEl) {
+                    statusEl.textContent = 'Not Connected';
+                    statusEl.className = 'stg-badge stg-badge-muted';
+                }
+                if (btn) {
+                    btn.textContent = 'Connect';
+                    btn.className = 'stg-btn-primary stg-provider-toggle';
+                    btn.style.width = '100%';
+                    btn.style.marginTop = '10px';
+                }
+                if (card) card.classList.remove('stg-provider-connected');
             }
+        }
+    });
+
+    // Restore saved API keys
+    ['aws', 'firebase', 'cloudinary', 'supabase'].forEach(function(p) {
+        var apiKeyInput = document.querySelector('.stg-api-key[data-provider="' + p + '"]');
+        if (apiKeyInput && saved['apikey_' + p]) {
+            apiKeyInput.value = saved['apikey_' + p];
+        }
+    });
+
+    document.querySelectorAll('.stg-provider-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            connectProvider(btn.dataset.provider, btn);
         });
     });
 
@@ -1617,7 +2954,9 @@ console.log('🎨 Enhanced animations loaded!');
         }
     });
 
-    // ── Dark Mode Toggle (bidirectional sync) ──
+    // ════════════════════════════
+    //  8. DARK MODE (bidirectional)
+    // ════════════════════════════
     var darkToggle = document.getElementById('stg-dark-toggle');
     if (darkToggle) {
         darkToggle.checked = document.body.classList.contains('dark-theme');
@@ -1631,7 +2970,23 @@ console.log('🎨 Enhanced animations loaded!');
         observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     }
 
-    // ── Layout Selection (persisted) ──
+    // ════════════════════════════
+    //  9. LAYOUT SELECTION
+    // ════════════════════════════
+    function applyLayout(layout) {
+        var app = document.querySelector('.app');
+        if (!app) return;
+        app.classList.remove('layout-compact', 'layout-wide');
+        if (layout === 'compact') app.classList.add('layout-compact');
+        else if (layout === 'wide') app.classList.add('layout-wide');
+
+        // Set tooltip data attributes for collapsed sidebar
+        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+            var span = btn.querySelector('span');
+            if (span) btn.setAttribute('data-tooltip', span.textContent.trim());
+        });
+    }
+
     document.querySelectorAll('.stg-layout-opt').forEach(function(opt) {
         if (saved.layout === opt.dataset.layout) {
             document.querySelectorAll('.stg-layout-opt').forEach(function(o) { o.classList.remove('active'); });
@@ -1641,11 +2996,17 @@ console.log('🎨 Enhanced animations loaded!');
             document.querySelectorAll('.stg-layout-opt').forEach(function(o) { o.classList.remove('active'); });
             opt.classList.add('active');
             saveSettings({ layout: opt.dataset.layout });
-            showToast('Layout set to "' + opt.dataset.layout + '"', 'info');
+            applyLayout(opt.dataset.layout);
+            showToast('Layout: ' + opt.dataset.layout, 'info');
         });
     });
 
-    // ── Default Provider (persisted) ──
+    // Apply saved layout on load
+    if (saved.layout) applyLayout(saved.layout);
+
+    // ════════════════════════════
+    //  10. DEFAULT PROVIDER
+    // ════════════════════════════
     var defProvider = document.getElementById('stg-default-provider');
     if (defProvider) {
         if (saved.defaultProvider) defProvider.value = saved.defaultProvider;
@@ -1655,7 +3016,9 @@ console.log('🎨 Enhanced animations loaded!');
         });
     }
 
-    // ── All Toggles (persist + visual feedback) ──
+    // ════════════════════════════
+    //  11. ALL TOGGLES (persist)
+    // ════════════════════════════
     var allToggles = ['stg-email-notif', 'stg-upload-notif', 'stg-security-notif', 'stg-storage-notif', 'stg-auto-backup', 'stg-versioning'];
     allToggles.forEach(function(id) {
         var el = document.getElementById(id);
@@ -1677,17 +3040,20 @@ console.log('🎨 Enhanced animations loaded!');
         });
     });
 
-    // ── Language (persisted) ──
+    // ════════════════════════════
+    //  12. LANGUAGE SELECTOR
+    // ════════════════════════════
     var langSelect = document.getElementById('stg-language');
     if (langSelect) {
         if (saved.language) langSelect.value = saved.language;
         langSelect.addEventListener('change', function() {
-            saveSettings({ language: langSelect.value });
-            showToast('Language changed to ' + langSelect.value, 'info');
+            changeLanguage(langSelect.value);
         });
     }
 
-    // ── Storage Bar Sync ──
+    // ════════════════════════════
+    //  13. STORAGE BAR SYNC
+    // ════════════════════════════
     function syncStorageBar() {
         if (!state || !state.summary) return;
         var used = state.summary.storageUsedMB || 0;
@@ -1703,12 +3069,93 @@ console.log('🎨 Enhanced animations loaded!');
                 fillEl.style.width = pct + '%';
             });
         }
+        // Update storage breakdown from real data
+        var breakdownEl = document.querySelector('.stg-storage-breakdown');
+        if (breakdownEl && state.summary.byCloud && state.summary.byCloud.length > 0) {
+            var colors = { aws: '#FF9900', firebase: '#FFCA28', cloudinary: '#6C63FF', supabase: '#3ECF8E' };
+            breakdownEl.innerHTML = '';
+            state.summary.byCloud.forEach(function(item) {
+                var sizeMB = (item.totalBytes / (1024 * 1024)).toFixed(1);
+                var color = colors[item.cloudService] || '#6366f1';
+                var name = item.cloudService.charAt(0).toUpperCase() + item.cloudService.slice(1);
+                var seg = document.createElement('div');
+                seg.className = 'stg-storage-segment';
+                seg.innerHTML = '<span class="stg-dot" style="background:' + color + ';"></span><span>' + name + ' \u2014 ' + sizeMB + ' MB</span>';
+                breakdownEl.appendChild(seg);
+            });
+        }
     }
     syncStorageBar();
 
-    // ── Header buttons ──
+    // ════════════════════════════════════
+    //  14. DYNAMIC SECURITY SCORE
+    // ════════════════════════════════════
+    function updateSecurityScore() {
+        var s = loadSettings();
+        var dict = translations[s.language || 'en'] || translations.en;
+        var checks = [
+            { key: 'secProfile', done: !!(s.profileName && s.profileEmail) },
+            { key: 'secPassword', done: !!s.passwordUpdated },
+            { key: 'secNotifs', done: s['toggle_stg-email-notif'] !== false && s['toggle_stg-security-notif'] !== false },
+            { key: 'secProvider', done: !!(s.provider_aws || s.provider_firebase || s.provider_cloudinary || s.provider_supabase) },
+            { key: 'sec2fa', done: !!s.twoFactorEnabled }
+        ];
+        var doneCount = 0;
+        checks.forEach(function(c) { if (c.done) doneCount++; });
+        var pct = Math.round((doneCount / checks.length) * 100);
+
+        // Update sidebar security score
+        var sideScore = document.getElementById('security-score');
+        var sideBar = document.getElementById('security-bar');
+        if (sideScore) sideScore.textContent = pct + '%';
+        if (sideBar) {
+            sideBar.style.width = pct + '%';
+            if (pct >= 80) sideBar.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+            else if (pct >= 50) sideBar.style.background = 'linear-gradient(135deg, #eab308, #f59e0b)';
+            else sideBar.style.background = 'linear-gradient(135deg, #ef4444, #f97316)';
+        }
+
+        // Render score card inside profile section
+        var profileBody = document.querySelector('#stg-profile .stg-card-body');
+        if (!profileBody) return;
+
+        var scoreCard = document.getElementById('stg-security-score-card');
+        if (!scoreCard) {
+            scoreCard = document.createElement('div');
+            scoreCard.id = 'stg-security-score-card';
+            scoreCard.className = 'stg-score-card';
+            profileBody.appendChild(scoreCard);
+        }
+
+        var barColor = pct >= 80 ?
+            'linear-gradient(135deg, #059669, #10b981)' :
+            pct >= 50 ?
+            'linear-gradient(135deg, #eab308, #f59e0b)' :
+            'linear-gradient(135deg, #ef4444, #f97316)';
+
+        var checklistHtml = '';
+        checks.forEach(function(c) {
+            checklistHtml += '<div class="stg-score-item"><span class="stg-score-icon ' + (c.done ? 'done' : 'pending') + '">' + (c.done ? '\u2713' : '\u2717') + '</span><span>' + dict[c.key] + '</span></div>';
+        });
+
+        scoreCard.innerHTML = '<div class="stg-score-header"><h4>' + dict.secScoreTitle + '</h4><span class="stg-score-value">' + pct + '%</span></div>' +
+            '<div class="stg-score-bar-outer"><div class="stg-score-bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div>' +
+            '<div class="stg-score-checks">' + checklistHtml + '</div>';
+    }
+    updateSecurityScore();
+
+    // ════════════════════════════
+    //  15. HEADER BUTTONS
+    // ════════════════════════════
     var stgThemeBtn = document.getElementById('theme-toggle-settings');
     if (stgThemeBtn) stgThemeBtn.addEventListener('click', toggleTheme);
     var stgLogoutBtn = document.getElementById('logout-btn-settings');
     if (stgLogoutBtn) stgLogoutBtn.addEventListener('click', function() { if (window.auth) window.auth.signOut(); });
+
+    // ════════════════════════════
+    //  16. APPLY SAVED LANGUAGE ON LOAD
+    // ════════════════════════════
+    if (saved.language && saved.language !== 'en') {
+        changeLanguage(saved.language);
+    }
 })();

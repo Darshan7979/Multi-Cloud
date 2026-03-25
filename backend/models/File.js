@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
-const FileSchema = new mongoose.Schema(
-  {
+const FileSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     originalName: { type: String, required: true },
     storageName: { type: String, required: true },
@@ -11,8 +10,8 @@ const FileSchema = new mongoose.Schema(
     privacy: { type: String, required: true, enum: ["public", "private"] },
     url: { type: String, required: true },
     publicId: { type: String },
-  },
-  { timestamps: true }
-);
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null },
+}, { timestamps: true });
 
 module.exports = mongoose.model("File", FileSchema);

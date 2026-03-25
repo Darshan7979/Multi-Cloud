@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CloudFusion - Terms and Conditions</title>
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+         :root {
+            --bg: #f4f7ff;
+            --ink: #1f2a44;
+            --muted: #55627f;
+            --card: rgba(255, 255, 255, 0.88);
+            --line: rgba(83, 102, 147, 0.2);
+            --accent: #4f5de4;
+            --accent-2: #2fa7c9;
+            --ok: #138a50;
+            --warn: #b45520;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(420px 420px at 10% 10%, rgba(79, 93, 228, 0.2), transparent 75%), radial-gradient(560px 560px at 95% 0%, rgba(47, 167, 201, 0.15), transparent 70%), linear-gradient(160deg, #eef3ff 0%, #f9fbff 60%, #edf8ff 100%);
+            color: var(--ink);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .page {
+            width: min(980px, 92vw);
+            margin: 42px auto 56px;
+        }
+        
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(79, 93, 228, 0.22);
+        }
+        
+        .brand-text h1 {
+            margin: 0;
+            font-size: 20px;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        
+        .brand-text p {
+            margin: 3px 0 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        
+        .back {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--ink);
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+        
+        .back:hover {
+            transform: translateY(-1px);
+            border-color: rgba(79, 93, 228, 0.35);
+            box-shadow: 0 8px 20px rgba(79, 93, 228, 0.14);
+        }
+        
+        .hero {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 14px 44px rgba(27, 44, 90, 0.12);
+            margin-bottom: 16px;
+        }
+        
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+        
+        .hero h2 {
+            margin: 0;
+            font-size: clamp(26px, 4vw, 38px);
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            color: #1a2450;
+        }
+        
+        .hero p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            max-width: 70ch;
+            font-size: 15px;
+        }
+        
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+        
+        .meta div {
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 13px;
+        }
+        
+        .meta strong {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+        
+        .toc,
+        .content {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 14px 38px rgba(27, 44, 90, 0.1);
+        }
+        
+        .toc {
+            position: sticky;
+            top: 16px;
+            padding: 18px;
+        }
+        
+        .toc h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            letter-spacing: -0.01em;
+        }
+        
+        .toc ol {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .toc a {
+            color: #2a3f7f;
+            text-decoration: none;
+            border-bottom: 1px dotted transparent;
+        }
+        
+        .toc a:hover {
+            border-bottom-color: #2a3f7f;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .section {
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px dashed rgba(83, 102, 147, 0.2);
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .section h3 {
+            margin: 0 0 8px;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+            color: #1b2e62;
+        }
+        
+        .section p,
+        .section li {
+            font-size: 15px;
+            color: #2e406d;
+        }
+        
+        .section ul {
+            margin: 8px 0 0;
+            padding-left: 18px;
+        }
+        
+        .pill-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .pill {
+            font-size: 12px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #1f386d;
+            font-weight: 600;
+        }
+        
+        .note {
+            border-left: 4px solid var(--warn);
+            background: rgba(180, 85, 32, 0.08);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            color: #6d3a16;
+            font-size: 14px;
+        }
+        
+        .contact {
+            border-left: 4px solid var(--ok);
+            background: rgba(19, 138, 80, 0.08);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #165939;
+        }
+        
+        footer {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .toc {
+                position: static;
+            }
+            .meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="top">
+            <a href="index.html" class="brand">
+                <img src="logo.png" alt="CloudFusion logo" />
+                <div class="brand-text">
+                    <h1>CloudFusion</h1>
+                    <p>Terms and Conditions</p>
+                </div>
+            </a>
+            <a href="index.html" class="back">Back to App</a>
+        </div>
+
+        <section class="hero">
+            <div class="eyebrow">Legal Agreement</div>
+            <h2>Terms and Conditions</h2>
+            <p>
+                These Terms and Conditions govern your use of CloudFusion, including account access, storage services, upload behavior, and security controls such as malware scanning.
+            </p>
+            <div class="meta">
+                <div>
+                    <strong>Effective Date</strong> March 18, 2026
+                </div>
+                <div>
+                    <strong>Version</strong> 1.0
+                </div>
+                <div>
+                    <strong>Platform</strong> CloudFusion Multi-Cloud Storage
+                </div>
+            </div>
+        </section>
+
+        <div class="grid">
+            <aside class="toc">
+                <h3>Contents</h3>
+                <ol>
+                    <li><a href="#acceptance">Acceptance of Terms</a></li>
+                    <li><a href="#services">Services Description</a></li>
+                    <li><a href="#accounts">Accounts and Security</a></li>
+                    <li><a href="#uploads">Uploads and Malware Scanning</a></li>
+                    <li><a href="#usage">Acceptable Use</a></li>
+                    <li><a href="#privacy">Privacy and Data Handling</a></li>
+                    <li><a href="#ip">Intellectual Property</a></li>
+                    <li><a href="#liability">Disclaimer and Liability</a></li>
+                    <li><a href="#termination">Suspension and Termination</a></li>
+                    <li><a href="#updates">Changes to Terms</a></li>
+                    <li><a href="#contact">Contact Information</a></li>
+                </ol>
+            </aside>
+
+            <main class="content">
+                <section id="acceptance" class="section">
+                    <h3>1. Acceptance of Terms</h3>
+                    <p>
+                        By creating an account, signing in, or using CloudFusion, you agree to these Terms and Conditions. If you do not agree, you must not use the service.
+                    </p>
+                </section>
+
+                <section id="services" class="section">
+                    <h3>2. Services Description</h3>
+                    <p>
+                        CloudFusion provides file upload, storage, and management across multiple cloud providers. Features may include analytics, security controls, recycle bin, email notifications, and plan-based limits.
+                    </p>
+                    <div class="pill-row">
+                        <span class="pill">Multi-cloud upload</span>
+                        <span class="pill">Private/public files</span>
+                        <span class="pill">Usage analytics</span>
+                        <span class="pill">Security controls</span>
+                    </div>
+                </section>
+
+                <section id="accounts" class="section">
+                    <h3>3. Accounts and Security</h3>
+                    <p>
+                        You are responsible for maintaining the confidentiality of your account credentials and all activities under your account. You must promptly notify us if you believe your account is compromised.
+                    </p>
+                    <ul>
+                        <li>Use accurate and current account information.</li>
+                        <li>Do not share your credentials with unauthorized users.</li>
+                        <li>Enable additional security settings where available.</li>
+                    </ul>
+                </section>
+
+                <section id="uploads" class="section">
+                    <h3>4. Uploads and Malware Scanning</h3>
+                    <p>
+                        Files may be scanned before becoming available to protect users and infrastructure. Uploads identified as malicious can be blocked, quarantined, or removed.
+                    </p>
+                    <ul>
+                        <li>Uploads that trigger malware detection may be rejected.</li>
+                        <li>In strict security mode, uploads may be blocked when scanning systems are unavailable.</li>
+                        <li>You are responsible for ensuring uploaded content is safe and lawful.</li>
+                    </ul>
+                    <div class="note">
+                        Security scans reduce risk but do not guarantee detection of all threats.
+                    </div>
+                </section>
+
+                <section id="usage" class="section">
+                    <h3>5. Acceptable Use</h3>
+                    <p>You agree not to use CloudFusion to upload, share, or distribute content that:</p>
+                    <ul>
+                        <li>Violates laws, regulations, or third-party rights.</li>
+                        <li>Contains malware, exploit code, or harmful payloads.</li>
+                        <li>Is abusive, fraudulent, or intended to disrupt service availability.</li>
+                    </ul>
+                </section>
+
+                <section id="privacy" class="section">
+                    <h3>6. Privacy and Data Handling</h3>
+                    <p>
+                        We process account and file metadata to operate core functionality, improve reliability, and apply security controls. Data may be stored and processed through integrated cloud providers.
+                    </p>
+                </section>
+
+                <section id="ip" class="section">
+                    <h3>7. Intellectual Property</h3>
+                    <p>
+                        You retain ownership of your uploaded content. You grant us a limited license to store, process, and transmit content solely to provide the service.
+                    </p>
+                </section>
+
+                <section id="liability" class="section">
+                    <h3>8. Disclaimer and Liability</h3>
+                    <p>
+                        The service is provided on an "as is" and "as available" basis. To the maximum extent permitted by law, CloudFusion disclaims warranties and is not liable for indirect, incidental, or consequential damages.
+                    </p>
+                </section>
+
+                <section id="termination" class="section">
+                    <h3>9. Suspension and Termination</h3>
+                    <p>
+                        We may suspend or terminate access for violation of these Terms, suspected abuse, malware-related risk, or legal requirements.
+                    </p>
+                </section>
+
+                <section id="updates" class="section">
+                    <h3>10. Changes to Terms</h3>
+                    <p>
+                        We may update these Terms from time to time. Continued use after changes take effect constitutes acceptance of the revised Terms.
+                    </p>
+                </section>
+
+                <section id="contact" class="section">
+                    <h3>11. Contact Information</h3>
+                    <p>If you have questions regarding these Terms, contact the CloudFusion support team.</p>
+                    <div class="contact">
+                        Email: support@cloudfusion.local<br /> Product: CloudFusion Multi-Cloud Storage
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            CloudFusion Terms and Conditions page.
+        </footer>
+    </div>
+</body>
+
+</html>
