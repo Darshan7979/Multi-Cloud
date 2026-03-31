@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:4000/api";
+const API_BASE = "https://cloudfusion-backend.onrender.com/api";
+fetch("https://cloudfusion-backend.onrender.com")
+    .catch(() => {});
 
 const getFileIcon = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
@@ -139,6 +141,33 @@ const fileCount = document.getElementById("file-count");
 const privateCount = document.getElementById("private-count");
 const securityScore = document.getElementById("security-score");
 const securityBar = document.getElementById("security-bar");
+
+const getDashboardStatusEl = () => {
+    let statusEl = document.getElementById("dashboard-loading-message");
+    if (!statusEl && dashboardView) {
+        statusEl = document.createElement("p");
+        statusEl.id = "dashboard-loading-message";
+        statusEl.className = "muted";
+        statusEl.style.margin = "0 0 1rem";
+
+        const topBar = dashboardView.querySelector(".top-bar");
+        if (topBar) {
+            topBar.insertAdjacentElement("afterend", statusEl);
+        } else {
+            dashboardView.prepend(statusEl);
+        }
+    }
+    return statusEl;
+};
+
+const setDashboardStatusMessage = (message, isError = false) => {
+    const statusEl = getDashboardStatusEl();
+    if (!statusEl) return;
+
+    statusEl.textContent = message || "";
+    statusEl.style.display = message ? "block" : "none";
+    statusEl.style.color = isError ? "#dc2626" : "";
+};
 
 const setView = (view) => {
     var allViews = ["dashboard-view", "upload-view", "files-view", "analytics-view", "security-view", "services-view", "settings-view"];
@@ -740,6 +769,41 @@ let loadFiles = async() => {
     }
 };
 
+const loadUserData = async(firebaseUser = window.auth.currentUser) => {
+    if (!firebaseUser) {
+        throw new Error("No authenticated user");
+    }
+
+    const idToken = await firebaseUser.getIdToken();
+    const response = await fetch(`${API_BASE}/files`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to load data");
+    }
+
+    state.files = Array.isArray(data.files) ? data.files : [];
+    renderFiles();
+
+    if (fileCount) fileCount.textContent = String(state.files.length);
+
+    const privateFiles = state.files.filter((file) => Boolean(file.isPrivate)).length;
+    if (privateCount) privateCount.textContent = String(privateFiles);
+
+    const totalBytes = state.files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    if (storageUsed) {
+        storageUsed.textContent = `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    setDashboardStatusMessage("");
+    return data;
+};
+
 const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
     const idToken = await firebaseUser.getIdToken();
 
@@ -773,8 +837,15 @@ const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
 
 const login = async(email, password) => {
     const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
-    await syncUserWithBackend(userCredential.user);
     setView("dashboard");
+    setDashboardStatusMessage("Loading your data...");
+
+    syncUserWithBackend(userCredential.user)
+        .then(() => loadUserData(userCredential.user))
+        .catch((error) => {
+            console.error("Background user sync failed:", error);
+            setDashboardStatusMessage("Failed to load data", true);
+        });
 };
 
 const register = async(name, email, password) => {
@@ -852,7 +923,16 @@ registerForm.addEventListener("submit", async(event) => {
     try {
         await register(name, email, password);
     } catch (err) {
-        if (registerMessage) registerMessage.textContent = err.message || "Registration failed";
+        if (registerMessage) {
+            const message = String(err.message || "");
+            if (err.code === "auth/email-already-in-use") {
+                registerMessage.textContent = "This email is already registered. Please log in.";
+            } else if (message.includes("already registered") || message.includes("duplicate key")) {
+                registerMessage.textContent = "This email is already registered. Please log in.";
+            } else {
+                registerMessage.textContent = message || "Registration failed";
+            }
+        }
     }
 });
 
@@ -1338,7 +1418,7 @@ document.querySelectorAll('.upgrade-btn').forEach(btn => {
             e.target.innerText = 'Redirecting...';
             e.target.disabled = true;
 
-            const response = await fetch('http://localhost:4000/api/payments/create-checkout-session', {
+            const response = await fetch(`${API_BASE}/payments/create-checkout-session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1373,7 +1453,7 @@ document.querySelectorAll('.razorpay-btn').forEach(btn => {
             e.target.innerText = 'Loading...';
             e.target.disabled = true;
 
-            const response = await fetch('http://localhost:4000/api/payments/create-razorpay-order', {
+            const response = await fetch(`${API_BASE}/payments/create-razorpay-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ plan })

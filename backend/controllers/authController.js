@@ -97,30 +97,49 @@ const syncUser = async(req, res, next) => {
         let emailStatus = { sent: false, reason: "not-attempted" };
 
         if (!user) {
-            user = await User.create({
-                firebaseUid: uid,
-                name: name || email.split("@")[0],
-                email: loginEmail,
-                emailVerified: email_verified || false,
-            });
+            // If a legacy/local account exists with the same email, link it to this Firebase UID.
+            user = await User.findOne({ email: loginEmail });
 
-            await Activity.create({
-                userId: user._id,
-                action: "register",
-                detail: `User registered: ${user.email}`,
-            });
+            if (user) {
+                user.firebaseUid = uid;
+                if (name && name !== user.name) {
+                    user.name = name;
+                }
+                user.emailVerified = Boolean(email_verified);
+                user.lastLoginAt = new Date();
+                await user.save();
 
-            const welcomeTemplate = buildWelcomeEmailTemplate({
-                name: user.name,
-                appUrl: process.env.FRONTEND_URL || "http://localhost:5500",
-            });
+                await Activity.create({
+                    userId: user._id,
+                    action: "account-linked",
+                    detail: "Existing account linked to Firebase authentication",
+                });
+            } else {
+                user = await User.create({
+                    firebaseUid: uid,
+                    name: name || email.split("@")[0],
+                    email: loginEmail,
+                    emailVerified: email_verified || false,
+                });
 
-            emailStatus = await sendNotificationToUserEmail({
-                toEmail: user.email,
-                subject: welcomeTemplate.subject,
-                text: welcomeTemplate.text,
-                html: welcomeTemplate.html,
-            });
+                await Activity.create({
+                    userId: user._id,
+                    action: "register",
+                    detail: `User registered: ${user.email}`,
+                });
+
+                const welcomeTemplate = buildWelcomeEmailTemplate({
+                    name: user.name,
+                    appUrl: process.env.FRONTEND_URL || "http://localhost:5500",
+                });
+
+                emailStatus = await sendNotificationToUserEmail({
+                    toEmail: user.email,
+                    subject: welcomeTemplate.subject,
+                    text: welcomeTemplate.text,
+                    html: welcomeTemplate.html,
+                });
+            }
         } else {
             user.lastLoginAt = new Date();
             if (name && name !== user.name) {
@@ -165,6 +184,9 @@ const syncUser = async(req, res, next) => {
         }
         if (err.code === "auth/argument-error") {
             return res.status(401).json({ message: "Invalid token" });
+        }
+        if (err && err.code === 11000) {
+            return res.status(409).json({ message: "Email is already registered. Please log in instead." });
         }
         return next(err);
     }
