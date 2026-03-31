@@ -838,7 +838,6 @@ const syncUserWithBackend = async(firebaseUser, bypassRedirect = false) => {
 const login = async(email, password) => {
     const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
     setView("dashboard");
-    setDashboardStatusMessage("Loading your data...");
 
     syncUserWithBackend(userCredential.user)
         .then(() => loadUserData(userCredential.user))
